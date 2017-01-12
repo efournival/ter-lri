@@ -19,6 +19,12 @@
 \usepackage{eurosym}
 \usepackage{mathtools}
 
+\usepackage[noend]{algorithmic}
+\renewcommand{\algorithmicif}{\textbf{si}}
+\renewcommand{\algorithmicthen}{\textbf{alors}}
+\renewcommand{\algorithmicfor}{\textbf{pour}}
+\renewcommand{\algorithmicdo}{\textbf{faire}}
+
 \usepackage{enumitem}
 \usepackage{adjustbox}
 \usepackage[hidelinks]{hyperref}
@@ -36,7 +42,43 @@
 
 \section{Mission}
 
+\subsection{Problème posé}
+
+L'exploration de l'arbre d'un semi-groupe numérique n'est pas triviale et est apparentée au problème de Frobenius.
+
+Le mathématicien Georg Frobenius s'est posé la question suivante : quel est le montant maximal que l'on peut pas rendre en fonction de pièces de monnaie données ?
+
+Ce montant est nommé ``nombre de Frobenius'' et est plus formellement décrit par le plus grand entier qu'il est impossible à calculer à partir de montants donnés.
+
+On peut aussi visualiser ce problème en considérant les scores au Rugby : quels sont les scores que l'on ne peut pas obtenir avec le but (3 points), l'essai (5 points) et l'essai transformé (7 points) ?
+
+La résolution des scores au Rugby est simple, on ne peut pas avoir 1, 2 ou 4 points; tous les autres scores sont possibles. En effet, il est aisé de calculer le nombre de Frobenius (ici, 4) pour $n \leq 3$ où $n$ est le nombre d'entiers possibles pour la combinaison. Ici, $n = 3$ soit $\{3,5,7\}$.
+
 \section{Déroulement}
+
+\subsection{Jeudi 12 janvier 2017}
+
+Installation au LRI, explications :
+\begin{itemize}
+	\item	parcours de l'arbre de semi-groupes numériques
+
+	\item	structures de données utilisées, notamment dans \texttt{NumericMonoid}
+
+	\item	algorithme ``naïf'' : tableau de booléens (le nombre est-il dans le semi-groupe ?) de taille $B =$ genre, soit la profondeur dans l'arbre et le nombre de trous
+			\begin{algorithmic}
+				\FOR {$g \text{ de dernierEnlevé à } B$}
+					\IF{$T[y]$}
+						\FOR {$i \text{ de } 1 \text{ à } \lfloor \frac{g-1}{2} \rfloor$}
+							\IF{$T[i]$ et $T[g-1]$}
+								$g$ est générateur
+							\ENDIF
+						\ENDFOR
+					\ENDIF
+				\ENDFOR
+			\end{algorithmic}
+
+	\item	algorithme optimisé facilitant la vectorisation : tableau d'entiers modélisant le nombre de paires ($i, j \in$ SN tel que $i + j = g$ et $i \leq j$), tous les nombres avec exactement une paire sont des générateurs
+\end{itemize}
 
 \section{Résultats}
 
