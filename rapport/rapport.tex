@@ -66,11 +66,11 @@ Installation au LRI, explications :
 
 	\item	algorithme ``naïf'' : tableau de booléens (le nombre est-il dans le semi-groupe ?) de taille $B =$ genre, soit la profondeur dans l'arbre et le nombre de trous
 			\begin{algorithmic}
-				\FOR {$g \text{ de dernierEnlevé à } B$}
+				\FOR {$g \text{ de dernierEnlevé + 1 à } B$}
 					\IF{$T[g]$}
-						\FOR {$i \text{ de } 1 \text{ à } \lfloor \frac{g-1}{2} \rfloor$}
-							\IF{$T[i]$ et $T[g-1]$}
-								\STATE $g$ est générateur
+						\FOR {$i \text{ de } 1 \text{ à } \lfloor \frac{g}{2} \rfloor$}
+							\IF{$T[i]$ et $T[g-i]$}
+								\STATE $g$ est un nombre de décomposition
 							\ENDIF
 						\ENDFOR
 					\ENDIF
@@ -78,6 +78,29 @@ Installation au LRI, explications :
 			\end{algorithmic}
 
 	\item	algorithme optimisé facilitant la vectorisation : tableau d'entiers modélisant le nombre de paires ($i, j \in$ SN tel que $i + j = g$ et $i \leq j$), tous les nombres avec exactement une paire sont des générateurs
+\end{itemize}
+
+\subsection{Autonomie}
+
+\begin{itemize}
+	\item	première implémentation de l'algorithme naïf; difficultés : initialisation, confusion décomposition/générateur
+	\item	première implémentation de l'algorithme optimisé
+	\item	organisation du dépôt Git
+\end{itemize}
+
+\subsection{Lundi 16 janvier 2017}
+
+\begin{itemize}
+	\item	mise au point et correction de l'algorithme naïf
+	\item	débogage et tests
+\end{itemize}
+
+\subsection{Autonomie}
+
+\begin{itemize}
+	\item	mise en place de tests unitaires
+	\item	amélioration de l'algorithme naïf; difficulté : les tests unitaires sur des semigroupes connus passent, mais le résultat final (nombre de semigroupes calculés, par genre) n'est pas bon
+	\item	correction de l'algorithme optimisé : il fonctionne
 \end{itemize}
 
 \section{Résultats}
