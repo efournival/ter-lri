@@ -3,8 +3,9 @@ package main
 import "fmt"
 
 const (
-	MAX_GENUS = 10
-	SIZE      = 3 * MAX_GENUS
+	MAX_GENUS  = 10
+	COUNT_SIZE = MAX_GENUS + 1
+	SIZE       = 3 * MAX_GENUS
 )
 
 type Monoid struct {
@@ -15,7 +16,8 @@ type Monoid struct {
 }
 
 func root() Monoid {
-	m := Monoid{c: 0, g: 0, m: 1}
+	// Paper say c=0 but it's not working, neither does changing the count loop < to <=
+	m := Monoid{c: 1, g: 0, m: 1}
 
 	for i := 0; i < SIZE; i++ {
 		m.d[i] = 1 + i/2
@@ -45,7 +47,7 @@ func son(s Monoid, x int) (sx Monoid) {
 	return
 }
 
-func count() (n [11]int) {
+func count() (n [COUNT_SIZE]int) {
 	stack := NewStack()
 	stack.Push(root())
 
@@ -55,6 +57,7 @@ func count() (n [11]int) {
 		n[s.g]++
 
 		if s.g < MAX_GENUS {
+			// < or <= ?
 			for x := s.c; x < s.c+s.m; x++ {
 				if s.d[x] == 1 {
 					stack.Push(son(s, x))
