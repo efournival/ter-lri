@@ -15,7 +15,7 @@ func CheckSlicesEqual(t *testing.T, s1, s2 []int, fail func()) {
 }
 
 func CheckMonoid(t *testing.T, m Monoid, x int, expected []int) Monoid {
-	r := son(m, x)
+	r := m.GetSon(x)
 
 	var generators []int
 
@@ -33,7 +33,7 @@ func CheckMonoid(t *testing.T, m Monoid, x int, expected []int) Monoid {
 }
 
 func TestKnownMonoids(t *testing.T) {
-	a := CheckMonoid(t, root(), 1, []int{2, 3})
+	a := CheckMonoid(t, RootMonoid(), 1, []int{2, 3})
 	b := CheckMonoid(t, a, 2, []int{3, 4, 5})
 	c := CheckMonoid(t, a, 3, []int{2, 5})
 	CheckMonoid(t, c, 5, []int{2, 7})
