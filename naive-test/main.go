@@ -10,12 +10,13 @@ const (
 
 type Monoid struct {
 	g   int
+	m   int
 	d   [SIZE]bool
 	gen []int
 }
 
 func root() Monoid {
-	m := Monoid{g: 0}
+	m := Monoid{g: 0, m: 1}
 
 	for i := 0; i < SIZE; i++ {
 		m.d[i] = true
@@ -50,6 +51,7 @@ func son(s Monoid, x int) (sx Monoid) {
 	sx.d = s.d
 	// Remove x
 	sx.d[x] = false
+	sx.m = x
 
 	// We want to find new generators AFTER the generator we just removed
 	for g := x + 1; g < SIZE; g++ {
@@ -87,7 +89,9 @@ func count() (n [COUNT_SIZE]int) {
 
 		if s.g < MAX_GENUS {
 			for _, x := range s.gen {
-				stack.Push(son(s, x))
+				if x >= s.m {
+					stack.Push(son(s, x))
+				}
 			}
 		}
 	}
