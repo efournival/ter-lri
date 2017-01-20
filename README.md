@@ -1,23 +1,28 @@
 # ter-lri
 
-Travail d'Étude et de Recherche sur l'exploration de semi-groupes numériques avec mise en place d'un algorithme de vol de tâches
+Travail d'Étude et de Recherche sur l'exploration de semigroupes numériques avec mise en place d'un algorithme de vol de tâches.
+
+Il se déroule au LRI (Laboratoire de Recherche en Informatique), rattaché à l'Université Paris-Sud et au CNRS, dans l'équipe GALaC (Graphes, Algorithmes et Combinatoire).
 
 Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 
 ## Déroulement
 
-* Étude du problème d'exploration de semi-groupes auquel on va s'intéresser
-* Implémentation basique en Go avec parallélisation
-* Étude comparative avec la version optimisée en C++
-* Implémentation du système distribué
-* Mise en place du cluster : image, SSH/DSH, etc.
-* Optimisation avancée du Go ou utilisation de cgo avec appel au code de `NumericMonoid` généré par GCC
-* Finalisation du système distribué et lancement des calculs
+- [x] Étude du problème d'exploration de semigroupes auquel on va s'intéresser
+- [ ] Documentation détaillée du fonctionnement des algorithmes (naïf et optimisé)
+- [x] Implémentation basique en Go
+- [ ] Parallélisation et optimisation basique
+- [ ] Étude comparative avec la version optimisée en C++
+- [ ] Implémentation du système distribué
+- [ ] Mise en place du cluster : image, SSH/DSH, etc.
+- [ ] Optimisation avancée du Go ou utilisation de cgo avec appel au code de `NumericMonoid` généré par GCC
+- [ ] Finalisation du système distribué et lancement des calculs
 
 ## Problèmes complémentaires
 
 * Distribution du problème des N reines
-* Mise en place du vol de tâche dans [Spark](http://spark.apache.org/)
+* [Mise en place du vol de tâche](https://github.com/Didayolo/spark) dans [Spark](http://spark.apache.org/)
+* Essais avec CUDA ?
 
 ## Ressources
 
