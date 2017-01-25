@@ -9,13 +9,13 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 ## Déroulement
 
 - [x] Étude du problème d'exploration de semigroupes auquel on va s'intéresser
-- [ ] Documentation détaillée du fonctionnement des algorithmes (naïf et optimisé)
 - [x] Implémentation basique en Go
-- [ ] Parallélisation et optimisation basique
-- [ ] Étude comparative avec la version optimisée en C++
+- [x] Parallélisation et optimisation basique
+- [x] Étude comparative avec la version optimisée en C++
+- [ ] Documentation détaillée du fonctionnement des algorithmes (naïf et optimisé)
+- [ ] Optimisation avancée du Go ou utilisation de cgo avec appel au code de `NumericMonoid` généré par GCC
 - [ ] Implémentation du système distribué
 - [ ] Mise en place du cluster : image, SSH/DSH, etc.
-- [ ] Optimisation avancée du Go ou utilisation de cgo avec appel au code de `NumericMonoid` généré par GCC
 - [ ] Finalisation du système distribué et lancement des calculs
 
 ## Problèmes complémentaires
@@ -35,3 +35,4 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 * [Functory](http://functory.lri.fr/About.html) : une bibliothèque robuste de calcul distribué en OCaml
 * [Exploring the tree of numerical semigroups](https://hal.archives-ouvertes.fr/hal-00823339/document)
 * [HPC in Combinatorics: Application of Work-Stealing](https://github.com/OpenDreamKit/OpenDreamKit/raw/master/WP5/T5.6/HPC-Combi.pdf)
+* [Profiling en Go](https://blog.golang.org/profiling-go-programs)

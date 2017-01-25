@@ -40,9 +40,25 @@
 
 \section*{Introduction}
 
-\section{Mission}
+\subsection*{Mission}
 
-\subsection{Problème posé}
+Ce TER consiste en l'exploration de l'arbre de semigroupes numériques dans le but de compter le nombre de combinaisons possibles jusqu'à une profondeur donnée.
+
+L'exploration consiste en un algorithme DFS (\emph{depth first search}) qui, à partir d'un semigroupe donné, génère tous les semigroupes fils induits par la suppression d'un nombre générateur.
+
+Florent Hivert et Jean Fromentin ont proposé un algorithme optimisé pour résoudre ce problème et ont réussi à calculer le nombre de semigroupes jusqu'à la profondeur 67, ce qui a pris 18 jours.
+
+Cela fait suite aux calculs effectués par Maria Bras-Amorós à l'aide d'un algorithme DFS performant mais non-optimisé qu'on appellera par la suite ``algorithme naïf''.
+
+L'algorithme optimisé est implémenté en \texttt{C++} et fait appel à de nombreuses techniques pour réduire le temps de calcul d'une solution engendrée à quelques dizaines de cycles processeur : vectorisation, parallélisation à l'aide de \texttt{Cilk++}, dérécursivation de l'exploration, optimisations des boucles et des accès mémoire ainsi qu'un choix rigoureux des types de données.
+
+La principale limitation de cet algorithme est qu'il n'est pas possible de le distribuer facilement sur plusieurs machines. En effet, l'arbre d'exploration n'est pas équilibré et des problèmes de charge se posent rapidement (une seule machine fait tout le travail).
+
+Une solution possible à ce déséquilibrage serait la mise en place d'un système de vol de tâche.
+
+Le but de mon TER est donc de fournir une solution pour le calcul du nombre de semigroupes qui est performante, parallélisée et distribuée. L'objectif à terme sera de lancer le calcul final sur un cluster de machines performantes.
+
+\subsection*{Problème posé}
 
 L'exploration de l'arbre d'un semigroupe numérique n'est pas triviale et est apparentée au problème de Frobenius.
 
@@ -52,11 +68,11 @@ Ce montant se nomme ``nombre de Frobenius'' et est plus formellement décrit par
 
 On peut aussi visualiser ce problème en considérant les scores au Rugby : quels sont les scores que l'on ne peut pas obtenir avec le but (3 points), l'essai (5 points) et l'essai transformé (7 points) ?
 
-La résolution des scores au Rugby est simple, on ne peut pas avoir 1, 2 ou 4 points; tous les autres scores sont possibles. En effet, il est aisé de calculer le nombre de Frobenius (ici, 4) pour $n \leq 3$ où $n$ est le nombre d'entiers possibles pour la combinaison. Ici, $n = 3$ soit $\{3,5,7\}$.
+La résolution des scores au Rugby est simple, on ne peut pas avoir 1, 2 ou 4 points; tous les autres scores sont possibles. En effet, il est aisé de calculer le nombre de Frobenius (ici, 4) pour $n \leq 3$ où $n$ est le nombre d'entiers possibles pour la combinaison. Ici, $n = 3$ pour $\{3,5,7\}$.
 
-\section{Déroulement}
+\section*{Déroulement}
 
-\subsection{Jeudi 12 janvier 2017}
+\subsection*{Jeudi 12 janvier 2017}
 
 Installation au LRI, explications :
 \begin{itemize}
@@ -80,7 +96,7 @@ Installation au LRI, explications :
 	\item	algorithme optimisé facilitant la vectorisation : tableau d'entiers modélisant le nombre de paires ($i, j \in$ SN tel que $i + j = g$ et $i \leq j$), tous les nombres avec exactement une paire sont des générateurs
 \end{itemize}
 
-\subsection{Autonomie}
+\subsection*{Autonomie}
 
 \begin{itemize}
 	\item	première implémentation de l'algorithme naïf; difficultés : initialisation, confusion décomposition/générateur
@@ -88,22 +104,25 @@ Installation au LRI, explications :
 	\item	organisation du dépôt Git
 \end{itemize}
 
-\subsection{Lundi 16 janvier 2017}
+\subsection*{Lundi 16 janvier 2017}
 
 \begin{itemize}
 	\item	mise au point et correction de l'algorithme naïf
 	\item	débogage et tests
 \end{itemize}
 
-\subsection{Autonomie}
+\subsection*{Autonomie}
 
 \begin{itemize}
 	\item	mise en place de tests unitaires
 	\item	amélioration de l'algorithme naïf; difficulté : les tests unitaires sur des semigroupes connus passent, mais le résultat final (nombre de semigroupes calculés, par genre) n'est pas bon
 	\item	correction de l'algorithme optimisé : il fonctionne
+	\item	correction de l'algorithme naïf en rajoutant l'attribut \texttt{m}
+	\item	parallélisation à l'aide d'un verrou partagé en lecture/écriture sur la pile (\texttt{sync.RWMutex}) et d'une incrémentation atomique sur les cellules du tableau de résultat (packages \texttt{sync/atomic} et \texttt{unsafe})
+	\item	difficultés : critère d'arrêt pour un genre donné, profiler le code car la charge processeur reste faible (verrous ?), types de données, stratégies de parallélisation
 \end{itemize}
 
-\section{Résultats}
+\section*{Résultats}
 
 \section*{Conclusion}
 
