@@ -12,8 +12,10 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 - [x] Implémentation basique en Go
 - [x] Parallélisation et optimisation basique
 - [x] Étude comparative avec la version optimisée en C++
+- [ ] Profiler le code Go avec perf et pprof
 - [ ] Documentation détaillée du fonctionnement des algorithmes (naïf et optimisé)
 - [ ] Optimisation avancée du Go ou utilisation de cgo avec appel au code de `NumericMonoid` généré par GCC
+- [ ] Test du compilateur Intel et de LLVM/Clang
 - [ ] Implémentation du système distribué
 - [ ] Mise en place du cluster : image, SSH/DSH, etc.
 - [ ] Finalisation du système distribué et lancement des calculs
@@ -23,6 +25,7 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 * Distribution du problème des N reines
 * [Mise en place du vol de tâche](https://github.com/Didayolo/spark) dans [Spark](http://spark.apache.org/)
 * Essais avec CUDA ?
+* Utiliser des instructions AVX1 voire AVX2
 
 ## Ressources
 

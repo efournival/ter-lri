@@ -41,7 +41,6 @@
 \section*{Introduction}
 
 \subsection*{Mission}
-
 Ce TER consiste en l'exploration de l'arbre de semigroupes numériques dans le but de compter le nombre de combinaisons possibles jusqu'à une profondeur donnée.
 
 L'exploration consiste en un algorithme DFS (\emph{depth first search}) qui, à partir d'un semigroupe donné, génère tous les semigroupes fils induits par la suppression d'un nombre générateur.
@@ -59,7 +58,6 @@ Une solution possible à ce déséquilibrage serait la mise en place d'un systè
 Le but de mon TER est donc de fournir une solution pour le calcul du nombre de semigroupes qui est performante, parallélisée et distribuée. L'objectif à terme sera de lancer le calcul final sur un cluster de machines performantes.
 
 \subsection*{Problème posé}
-
 L'exploration de l'arbre d'un semigroupe numérique n'est pas triviale et est apparentée au problème de Frobenius.
 
 Le mathématicien Georg Frobenius s'est posé la question suivante : quel est le montant maximal que l'on peut pas rendre en fonction de pièces de monnaie données ?
@@ -73,7 +71,6 @@ La résolution des scores au Rugby est simple, on ne peut pas avoir 1, 2 ou 4 po
 \section*{Déroulement}
 
 \subsection*{Jeudi 12 janvier 2017}
-
 Installation au LRI, explications :
 \begin{itemize}
 	\item	parcours de l'arbre de semi-groupes numériques
@@ -97,7 +94,6 @@ Installation au LRI, explications :
 \end{itemize}
 
 \subsection*{Autonomie}
-
 \begin{itemize}
 	\item	première implémentation de l'algorithme naïf; difficultés : initialisation, confusion décomposition/générateur
 	\item	première implémentation de l'algorithme optimisé
@@ -105,14 +101,12 @@ Installation au LRI, explications :
 \end{itemize}
 
 \subsection*{Lundi 16 janvier 2017}
-
 \begin{itemize}
 	\item	mise au point et correction de l'algorithme naïf
 	\item	débogage et tests
 \end{itemize}
 
 \subsection*{Autonomie}
-
 \begin{itemize}
 	\item	mise en place de tests unitaires
 	\item	amélioration de l'algorithme naïf; difficulté : les tests unitaires sur des semigroupes connus passent, mais le résultat final (nombre de semigroupes calculés, par genre) n'est pas bon
@@ -121,6 +115,16 @@ Installation au LRI, explications :
 	\item	parallélisation à l'aide d'un verrou partagé en lecture/écriture sur la pile (\texttt{sync.RWMutex}) et d'une incrémentation atomique sur les cellules du tableau de résultat (packages \texttt{sync/atomic} et \texttt{unsafe})
 	\item	difficultés : critère d'arrêt pour un genre donné, profiler le code car la charge processeur reste faible (verrous ?), types de données, stratégies de parallélisation
 \end{itemize}
+
+\subsection*{Jeudi 26 janvier 2017}
+\begin{itemize}
+	\item	présentation du profiling avec la commande \texttt{perf}, elle est effective au niveau hardware donc ne dégrade pas les performances; permet d'associer code machine/symboles de débogage au temps relatif passé par le processeur; commandes \texttt{perf record}, \texttt{perf report} et \texttt{sudo perf top} pour du temps réel
+	\item	pour tester \texttt{NumericMonoid}, on ferra attention à se positionner dans le répertoire \texttt{src/Cilk++}
+	\item	il faut vérifier la bonne parallélisation en testant différents nombres de threads (modification de \texttt{runtime.GOMAXPROCS}); une bonne parallélisation donnera le résultat deux fois plus rapidement si on double le nombre de threads (jusqu'au nombre de c\oe{}urs, mais attention à l'HyperThreading : tester avec 2 fois le nombre de c\oe{}urs physiques); seul 5 à 10\% du temps de calcul total est destiné à la communication/synchronisation
+	\item	pour remplacer l'utilisation de \texttt{sync/atomic}, on peut utiliser un stockage local au thread; implémenté dans Sage en Python; en Go, on pourra utiliser des \emph{channels} (\emph{pipes} en Python)
+	\item	pour s'arrêter lorsque les calculs sont parallélisés : compter le nombre de processus actifs (entre le pop de la pile et après les push); on a fini lorsque la pile est vide et qu'il n'y a aucun processus actifs; fait appel à \texttt{sync/atomic}
+\end{itemize}
+
 
 \section*{Résultats}
 
