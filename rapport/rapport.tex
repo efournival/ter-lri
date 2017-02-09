@@ -22,15 +22,24 @@
 \usepackage[noend]{algorithmic}
 \renewcommand{\algorithmicif}{\textbf{si}}
 \renewcommand{\algorithmicthen}{\textbf{alors}}
+
 \renewcommand{\algorithmicfor}{\textbf{pour}}
 \renewcommand{\algorithmicdo}{\textbf{faire}}
 
 \usepackage{enumitem}
 \usepackage{adjustbox}
 \usepackage[hidelinks]{hyperref}
+\usepackage[bottom]{footmisc}
 
 \setlength\parindent{0pt}
 \setlength\parskip{0.25em}
+
+\makeatletter
+\g@addto@macro \normalsize {
+	\setlength{\abovedisplayskip}{0.25em}
+	\setlength{\belowdisplayskip}{0.25em}
+}
+\makeatother
 
 \let\emptyset\varnothing
 \let\leq\leqslant
@@ -41,13 +50,13 @@
 \section*{Introduction}
 
 \subsection*{Mission}
-Ce TER consiste en l'exploration de l'arbre de semigroupes numériques dans le but de compter le nombre de combinaisons possibles jusqu'à une profondeur donnée.
+Ce TER consiste en la distribution d'un calcul combinatoire sur plusieurs machines. Il s'agit de compter le nombre de semigroupes numériques par exploration d'arbre jusqu'à une profondeur donnée.
 
-L'exploration consiste en un algorithme DFS (\emph{depth first search}) qui, à partir d'un semigroupe donné, génère tous les semigroupes fils induits par la suppression d'un nombre générateur.
+L'exploration consiste en un algorithme qui, à partir d'un semigroupe donné, génère tous les semigroupes fils induits par la suppression d'un nombre générateur.
 
 Florent Hivert et Jean Fromentin ont proposé un algorithme optimisé pour résoudre ce problème et ont réussi à calculer le nombre de semigroupes jusqu'à la profondeur 67, ce qui a pris 18 jours.
 
-Cela fait suite aux calculs effectués par Maria Bras-Amorós à l'aide d'un algorithme DFS performant mais non-optimisé qu'on appellera par la suite ``algorithme naïf''.
+Cela fait suite aux calculs effectués par Maria Bras-Amorós à l'aide d'un algorithme DFS performant mais non optimisé qu'on appellera par la suite ``algorithme naïf''.
 
 L'algorithme optimisé est implémenté en \texttt{C++} et fait appel à de nombreuses techniques pour réduire le temps de calcul d'une solution engendrée à quelques dizaines de cycles processeur : vectorisation, parallélisation à l'aide de \texttt{Cilk++}, dérécursivation de l'exploration, optimisations des boucles et des accès mémoire ainsi qu'un choix rigoureux des types de données.
 
@@ -68,16 +77,87 @@ On peut aussi visualiser ce problème en considérant les scores au Rugby : quel
 
 La résolution des scores au Rugby est simple, on ne peut pas avoir 1, 2 ou 4 points; tous les autres scores sont possibles. En effet, il est aisé de calculer le nombre de Frobenius (ici, 4) pour $n \leq 3$ où $n$ est le nombre d'entiers possibles pour la combinaison. Ici, $n = 3$ pour $\{3,5,7\}$.
 
+\subsection*{Organisation}
+Le travail sur ce TER a été effectué en autonomie avec un créneau d'une demi-journée par semaine au LRI pour faire le point sur les tâches à effectuer et résoudre les difficultés.
+
+Le code s'organise autour d'un dépôt Git\footnote{\url{https://github.com/efournival/ter-lri}} qui contient tous les essais ainsi que la version finale destinée à être lancée sur un cluster de calcul.
+
+Le dépôt contient plusieurs dossiers :
+\begin{itemize}
+	\item	\texttt{danse} : la version finale nommée DANSE pour \emph{Distributed Array of Numerical Semigroup Explorations}, soit en français un réseau distribué d'exploration de semigroupes numériques;
+	\item	\texttt{naive-test} : l'implémentation de l'algorithme naïf, non parallélisé;
+	\item	\texttt{native-parallelization} : un essai tout en Go qui implémente l'algorithme optimisé et qui est parallélisé, cependant il reste limité par certaines optimisations bas niveau impossibles à réaliser en Go.
+\end{itemize}
+
+\subsection*{Modélisation du problème}
+On veut calculer le nombre de semigroupes numériques (aussi appelé monoïdes) différents jusqu'à un genre maximum donné.
+
+Un semigroupe numérique est composé de générateurs, il s'agit d'un ensemble minimal de nombres qu'on ne peut pas obtenir en combinant d'autres nombres appartenant au monoïde.
+
+Ces combinaisons (au moins une addition) sont appelées décompositions, si pour un nombre du semigroupe il y a une et une seule décomposition alors ce nombre est un générateur.
+
+Le genre d'un semigroupe numérique correspond à sa profondeur dans l'arbre et aussi au nombre de ``trous''. On appelle trou un générateur qui a été enlevé.
+
+Le nombre de Frobenius d'un semigroupe est la valeur du plus grand trou.
+
+Le conducteur est le nombre à partir duquel le nombre de décompositions est d'au moins 2.
+
+\subsection*{Un exemple}
+
+Prenons un semigroupe quelconque noté $S_X$ où $X$ est le genre :
+\[ S_2 = \{0, \mathbf{3}, \mathbf{4}, \mathbf{5}, 6, 7, 8\} \cup [9; +\infty[ \]
+L'ensemble minimal de nombres générateurs a été mis en gras, on constate qu'on peut générer tous les autres nombres à partir de ceux-ci.
+
+Le genre est égal à 2 car il y a deux trous, c'est à dire qu'on a retiré deux nombres au semigroupe, ici 1 et 2.
+
+La multiplicité est de 1, soit le plus petit nombre appartenant au semigroupe avec 0 exclu.
+
+Le nombre de Frobenius de ce semigroupe est égal à 5, soit le plus grand générateur.
+
+Le conducteur est 6 (suivant le Frobenius), tous les nombres à partir de celui-ci peuvent être générés d'au moins deux manières :
+\begin{itemize}
+	\item	l'ajout de zéro au nombre, soit $0 + 6$ (ou $6 + 0$, mais on va ignorer la commutativité)
+	\item	la somme de deux nombres générateurs, ici $3 + 3$
+\end{itemize}
+
+Ce semigroupe va engendrer le semigroupe suivant si on retire, par exemple, 3 :
+\[ S_3 = \{ 0, \mathbf{4}, \mathbf{5}, \mathbf{6}, \mathbf{7}, 9, 10 \} \cup [11; +\infty[ \]
+
+\subsection*{Algorithme naïf}
+Décrit par Maria Bras-Amorós en 20XX, cet algorithme \emph{Breadth-First Search} permet de déterminer les générateurs d'un semigroupe numérique.
+
+L'algorithme naïf utilise une structure de données comportant un tableau de $3 \cdot G - 1$ cases (avec $G$ le genre maximum à calculer) de booléens indiquant pour chaque nombre si il possède ou non au moins une décomposition.
+
+Étant donné un générateur à retirer, l'algorithme va calculer toutes les combinaisons possibles en effectuant un ET logique entre deux cases du tableau. 
+
+\subsection*{Algorithme optimisé}
+
+L'algorithme dit optimisé a été implémenté par Jean Fromentin et Florent Hivert avec l'objectif de calculer le monoïde engendré par la suppression d'un nombre générateur.
+
+Il s'agit d'un algorithme de type \emph{Depth-First Search} soit un parcours en profondeur, à la différence de l'algorithme naïf qui est un parcours en largeur.
+
+La structure de données mise en place ici comporte :
+\begin{itemize}
+	\item	le genre du monoïde;
+	\item	la multiplicité;
+	\item	le nombre de Frobenius;
+	\item	un tableau de $3 \cdot G - 1$ cases d'entiers représentant, pour chaque nombre appartenant au semigroupe, le nombre de combinaisons (additions) permettant de générer ce même nombre à partir des autres.
+\end{itemize}
+
+Le but de cet algorithme est de calculer le nombre de combinaisons.
+
+Pour chaque nombre, si il possède au moins une combinaison, alors il est générateur du semigroupe.
+
 \section*{Déroulement}
 
 \subsection*{Jeudi 12 janvier 2017}
 Installation au LRI, explications :
 \begin{itemize}
-	\item	parcours de l'arbre de semi-groupes numériques
+	\item	parcours de l'arbre de semigroupes numériques
 
 	\item	structures de données utilisées, notamment dans \texttt{NumericMonoid}
 
-	\item	algorithme ``naïf'' : tableau de booléens (le nombre est-il dans le semi-groupe ?) de taille $B =$ genre, soit la profondeur dans l'arbre et le nombre de trous
+	\item	algorithme ``naïf'' : tableau de booléens (le nombre est-il dans le semigroupe ?) de taille $B = 3 \cdot G - 1$ où G est le genre soit la profondeur dans l'arbre et le nombre de trous
 			\begin{algorithmic}
 				\FOR {$g \text{ de dernierEnlevé + 1 à } B$}
 					\IF{$T[g]$}
@@ -90,7 +170,7 @@ Installation au LRI, explications :
 				\ENDFOR
 			\end{algorithmic}
 
-	\item	algorithme optimisé facilitant la vectorisation : tableau d'entiers modélisant le nombre de paires ($i, j \in$ SN tel que $i + j = g$ et $i \leq j$), tous les nombres avec exactement une paire sont des générateurs
+	\item	algorithme optimisé facilitant la vectorisation : tableau d'entiers modélisant le nom\-bre de paires ($i, j \in$ SN tel que $i + j = g$ et $i \leq j$), tous les nombres avec exactement une paire sont des générateurs
 \end{itemize}
 
 \subsection*{Autonomie}
@@ -112,19 +192,47 @@ Installation au LRI, explications :
 	\item	amélioration de l'algorithme naïf; difficulté : les tests unitaires sur des semigroupes connus passent, mais le résultat final (nombre de semigroupes calculés, par genre) n'est pas bon
 	\item	correction de l'algorithme optimisé : il fonctionne
 	\item	correction de l'algorithme naïf en rajoutant l'attribut \texttt{m}
-	\item	parallélisation à l'aide d'un verrou partagé en lecture/écriture sur la pile (\texttt{sync.RWMutex}) et d'une incrémentation atomique sur les cellules du tableau de résultat (packages \texttt{sync/atomic} et \texttt{unsafe})
+	\item	parallélisation à l'aide d'un verrou partagé sur la pile (\texttt{sync.RWMutex}) et d'une incrémentation atomique sur les cellules du tableau de résultat (packages \texttt{sync/atomic} et \texttt{unsafe})
 	\item	difficultés : critère d'arrêt pour un genre donné, profiler le code car la charge processeur reste faible (verrous ?), types de données, stratégies de parallélisation
 \end{itemize}
 
 \subsection*{Jeudi 26 janvier 2017}
 \begin{itemize}
-	\item	présentation du profiling avec la commande \texttt{perf}, elle est effective au niveau hardware donc ne dégrade pas les performances; permet d'associer code machine/symboles de débogage au temps relatif passé par le processeur; commandes \texttt{perf record}, \texttt{perf report} et \texttt{sudo perf top} pour du temps réel
+	\item	présentation du profiling avec la commande \texttt{perf}, elle est effective au niveau hardware donc ne dégrade pas les performances; permet d'associer code machine et symboles de débogage au temps relatif passé par le processeur; commandes \texttt{perf record}, \texttt{perf report} et \texttt{sudo perf top} pour du temps réel
 	\item	pour tester \texttt{NumericMonoid}, on ferra attention à se positionner dans le répertoire \texttt{src/Cilk++}
 	\item	il faut vérifier la bonne parallélisation en testant différents nombres de threads (modification de \texttt{runtime.GOMAXPROCS}); une bonne parallélisation donnera le résultat deux fois plus rapidement si on double le nombre de threads (jusqu'au nombre de c\oe{}urs, mais attention à l'HyperThreading : tester avec 2 fois le nombre de c\oe{}urs physiques); seul 5 à 10\% du temps de calcul total est destiné à la communication/synchronisation
 	\item	pour remplacer l'utilisation de \texttt{sync/atomic}, on peut utiliser un stockage local au thread; implémenté dans Sage en Python; en Go, on pourra utiliser des \emph{channels} (\emph{pipes} en Python)
-	\item	pour s'arrêter lorsque les calculs sont parallélisés : compter le nombre de processus actifs (entre le pop de la pile et après les push); on a fini lorsque la pile est vide et qu'il n'y a aucun processus actifs; fait appel à \texttt{sync/atomic}
+	\item	pour s'arrêter lorsque les calculs sont parallélisés : compter le nombre de processus actifs (entre le pop de la pile et après les push); on a fini lorsque la pile est vide et qu'il n'y a plus aucun processus actif; fait appel à \texttt{sync/atomic}
 \end{itemize}
 
+\subsection*{Jeudi 2 février 2017}
+\begin{itemize}
+	\item	profiling en utilisant \verb|perf| : mise en évidence de délais supplémentaires induits par les communications et la synchronisation
+	\item	mise en place d'un arrêt ``propre'' avec comptage du nombre de routines actives et de l'état de la pile
+	\item	les threads de l'ordonnanceur interne du Go (autant de threads que de cœurs logiques) ne prennent 100\% de la charge processeur : mise en évidence (de trop) d'attente de verrous
+\end{itemize}
+
+\subsection*{Autonomie}
+\begin{itemize}
+	\item	réflexion sur une stratégie de parallélisation qui ne nécessite pas de verrous et qui permettra à terme de mettre en place le calcul distribué
+	\item	rédaction du rapport
+	\item	difficultés sur la multiplicité, le conducteur, la méthode pour compter les combinaisons dans l'algorithme optimisé
+\end{itemize}
+
+\subsection*{Mercredi 8 février 2017}
+\begin{itemize}
+	\item	éclaircissements sur les nombres de décomposition, les générateurs, le conducteur, la multiplicité, \dots
+	\item	discussion sur la stratégie à adopter pour la distribution : faire appel au code \texttt{C++} multithreadé à l'aide de \texttt{cgo} et gérer la distribution ainsi que le vol de tâche à l'aide d'un code Go natif
+	\item	code à étudier : l'itérateur dans \texttt{treewalk.cpp} de \texttt{NumericMonoid} ainsi que la méthode \texttt{walk\_children\_stack}
+	\item	pistes pour l'implémentation du vol de tâches : documentation automatique du code Python ainsi que le code source du projet Sage dans \path{src/sage/parallel/mapreduce.py}
+\end{itemize}
+
+\subsection*{Autonomie}
+\begin{itemize}
+	\item	rédaction du rapport : algorithmes, exemple de semigroupe et avancement
+	\item	documentation et réflexion sur l'utilisation de \texttt{cgo}
+	\item	découverte de \texttt{go build -gcflags='-m'} qui indique si des fonctions ont été ou pas inlinées, et pour quelles raisons
+\end{itemize}
 
 \section*{Résultats}
 
