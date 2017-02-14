@@ -12,13 +12,14 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 - [x] Implémentation basique en Go
 - [x] Parallélisation et optimisation basique
 - [x] Étude comparative avec la version optimisée en C++
-- [x] Profiler le code Go avec perf et pprof
+- [x] Profiler le code Go avec `perf` et `pprof`
+- [x] Utilisation de cgo avec appel au code de `NumericMonoid` généré par GCC
 - [ ] Documentation détaillée du fonctionnement des algorithmes (naïf et optimisé)
-- [ ] Utilisation de cgo avec appel au code de `NumericMonoid` généré par GCC
 - [ ] Mise en place du vol de tâche
 - [ ] Implémentation du système distribué
 - [ ] Mise en place du cluster : image, SSH/DSH, etc.
 - [ ] Finalisation du système distribué et lancement des calculs
+- [ ] Terminer d'écrire le rapport et préparer la soutenance
 
 ## Problèmes complémentaires
 
@@ -36,3 +37,4 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 * [Profiling en Go](https://blog.golang.org/profiling-go-programs)
 * [Un livre sur la programmation réseau en Go](https://www.gitbook.com/book/jannewmarch/network-programming-with-go-golang-/details)
 * [Un livre sur la concurrence en Go](http://shop.oreilly.com/product/9781783983483.do)
+* [Les modalités d'évaluation des TER](https://perso.limsi.fr/allauzen/webpages/pmwiki.php?n=Cours.M1-TER)

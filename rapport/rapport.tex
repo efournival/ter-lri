@@ -85,6 +85,7 @@ Le code s'organise autour d'un dépôt Git\footnote{\url{https://github.com/efou
 Le dépôt contient plusieurs dossiers :
 \begin{itemize}
 	\item	\texttt{danse} : la version finale nommée DANSE pour \emph{Distributed Array of Numerical Semigroup Explorations}, soit en français un réseau distribué d'exploration de semigroupes numériques;
+	\item	\texttt{go-numeric-monoid} : les \emph{bindings} Go de l'algorithme optimisé écrit en \texttt{C++};
 	\item	\texttt{naive-test} : l'implémentation de l'algorithme naïf, non parallélisé;
 	\item	\texttt{native-parallelization} : un essai tout en Go qui implémente l'algorithme optimisé et qui est parallélisé, cependant il reste limité par certaines optimisations bas niveau impossibles à réaliser en Go.
 \end{itemize}
@@ -232,6 +233,8 @@ Installation au LRI, explications :
 	\item	rédaction du rapport : algorithmes, exemple de semigroupe et avancement
 	\item	documentation et réflexion sur l'utilisation de \texttt{cgo}
 	\item	découverte de \texttt{go build -gcflags='-m'} qui indique si des fonctions ont été ou pas inlinées, et pour quelles raisons
+	\item	mise en place d'un package Go permettant de faire le lien entre le code optimisé de \texttt{NumericMonoid} et un code écrit en Go : implémentation d'une interface \texttt{C} $\Leftrightarrow$ \texttt{C++} pour pouvoir utiliser \texttt{cgo}
+	\item	problèmes rencontrés : \texttt{NumericMonoid} fait une erreur de segmentation pour des valeurs de \texttt{MAX\_GENUS} inférieure à 16; sous GCC 6, les résultats (nombre de semigroupes par genre) diffèrent (!), résolu en forçant l'utilisation de GCC 5
 \end{itemize}
 
 \section*{Résultats}
