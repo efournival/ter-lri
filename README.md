@@ -27,6 +27,7 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 * [Mise en place du vol de tâche](https://github.com/Didayolo/spark) dans [Spark](http://spark.apache.org/)
 * Utiliser des instructions AVX1 voire AVX2
 * Test du compilateur Intel et de LLVM/Clang
+* Rapporter le bug concernant les mauvais avertissements sur les indices de tableaux à GCC
 
 ## Ressources
 

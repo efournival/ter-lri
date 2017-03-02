@@ -86,8 +86,8 @@ Le dépôt contient plusieurs dossiers :
 \begin{itemize}
 	\item	\texttt{danse} : la version finale nommée DANSE pour \emph{Distributed Array of Numerical Semigroup Explorations}, soit en français un réseau distribué d'exploration de semigroupes numériques;
 	\item	\texttt{go-numeric-monoid} : les \emph{bindings} Go de l'algorithme optimisé écrit en \texttt{C++};
-	\item	\texttt{naive-test} : l'implémentation de l'algorithme naïf, non parallélisé;
-	\item	\texttt{native-parallelization} : un essai tout en Go qui implémente l'algorithme optimisé et qui est parallélisé, cependant il reste limité par certaines optimisations bas niveau impossibles à réaliser en Go.
+	\item	\texttt{go-fork-join} : la librairie réalisée dans le cadre de ce TER qui permet de mettre en place un modèle fork-join\footnote{\url{https://en.wikipedia.org/wiki/Fork-join_model}} en Go avec à terme un système de vol de tâches
+	\item	\texttt{simple-implementation} : implémentation propre avec tests unitaires de l'algorithme naïf et de l'algorithme optimisé, non parallélisée;
 \end{itemize}
 
 \subsection*{Modélisation du problème}
@@ -129,7 +129,7 @@ Décrit par Maria Bras-Amorós en 20XX, cet algorithme \emph{Breadth-First Searc
 
 L'algorithme naïf utilise une structure de données comportant un tableau de $3 \cdot G - 1$ cases (avec $G$ le genre maximum à calculer) de booléens indiquant pour chaque nombre si il possède ou non au moins une décomposition.
 
-Étant donné un générateur à retirer, l'algorithme va calculer toutes les combinaisons possibles en effectuant un ET logique entre deux cases du tableau. 
+Étant donné un générateur à retirer, l'algorithme va calculer toutes les combinaisons possibles en effectuant un ET logique entre deux cases du tableau.
 
 \subsection*{Algorithme optimisé}
 
@@ -235,6 +235,20 @@ Installation au LRI, explications :
 	\item	découverte de \texttt{go build -gcflags='-m'} qui indique si des fonctions ont été ou pas inlinées, et pour quelles raisons
 	\item	mise en place d'un package Go permettant de faire le lien entre le code optimisé de \texttt{NumericMonoid} et un code écrit en Go : implémentation d'une interface \texttt{C} $\Leftrightarrow$ \texttt{C++} pour pouvoir utiliser \texttt{cgo}
 	\item	problèmes rencontrés : \texttt{NumericMonoid} fait une erreur de segmentation pour des valeurs de \texttt{MAX\_GENUS} inférieure à 16; sous GCC 6, les résultats (nombre de semigroupes par genre) diffèrent (!), résolu en forçant l'utilisation de GCC 5
+\end{itemize}
+
+\subsection*{Jeudi 2 mars 2017}
+\begin{itemize}
+	\item	il est ``normal'' que le programme fasse une erreur de segmentation pour une valeur de \texttt{MAX\_GENUS} $\leq 11$ car il s'agit d'une constante codée en dur et utilisée pour indiquer quelles explorations doivent être explorées par Cilk ou par dérécursivation (ligne 48 de \texttt{treewalk.cpp})
+	\item	un bug a sûrement été introduit par la version 6 de GCC au niveau de la vérification des indices d'accès aux tableaux : des avertissements apparaissent à la compilation lorsque l'indice est non signé (type \texttt{ind\_t}), il n'y a plus d'avertissement si on change le \texttt{typedef} de \texttt{ind\_t} en quelque chose de signé
+	\item	on veut vérifier que le Go supporte bien le modèle fork-join récursif, pour cela il faut implémenter l'exemple de Wikipédia (page anglaise) qui effectue un tri fusion
+	\item	la suite du travail consistera à traduire en Go la boucle principale du code source original de \texttt{NumericMonoid} soit \texttt{walk\_children} ligne 49 de \texttt{treewalk.cpp}
+\end{itemize}
+
+\subsection*{Autonomie}
+\begin{itemize}
+	\item	nettoyage du dépôt et mise au propre des versions naïves et optimisées afin d'uniformiser les tests
+	\item	attention à une possible régression de Go lors du passage en version 1.8 : les mesures de temps des appels au code original de \texttt{NumericMonoid} semblent différer alors qu'elles étaient identiques avant
 \end{itemize}
 
 \section*{Résultats}
