@@ -2,21 +2,16 @@ package main
 
 import "fmt"
 
-const (
-	MAX_GENUS  = 10
-	COUNT_SIZE = MAX_GENUS + 1
-	SIZE       = 3 * MAX_GENUS
-)
-
-type Monoid struct {
+type NaiveMonoid struct {
 	g   int
 	m   int
 	d   [SIZE]bool
 	gen []int
 }
 
-func root() Monoid {
-	m := Monoid{g: 0, m: 1}
+func InitNaiveMonoid() (m NaiveMonoid) {
+	m.g = 0
+	m.m = 1
 
 	for i := 0; i < SIZE; i++ {
 		m.d[i] = true
@@ -24,10 +19,12 @@ func root() Monoid {
 
 	m.gen = append(m.gen, 1)
 
-	return m
+	return
 }
 
-func son(s Monoid, x int) (sx Monoid) {
+func (s NaiveMonoid) Son(x int) Monoider {
+	sx := NaiveMonoid{}
+
 	// x MUST BE a generator of the source monoid
 	isGenerator := false
 
@@ -75,30 +72,17 @@ func son(s Monoid, x int) (sx Monoid) {
 		}
 	}
 
-	return
+	return sx
 }
 
-func count() (n [COUNT_SIZE]int) {
-	stack := NewStack()
-	stack.Push(root())
-
-	for !stack.IsEmpty() {
-		s := stack.Pop()
-
-		n[s.g]++
-
-		if s.g < MAX_GENUS {
-			for _, x := range s.gen {
-				if x >= s.m {
-					stack.Push(son(s, x))
-				}
-			}
-		}
-	}
-
-	return
+func (m NaiveMonoid) Generators() []int {
+	return m.gen
 }
 
-func main() {
-	fmt.Printf("%+v\n", count())
+func (m NaiveMonoid) Genus() int {
+	return m.g
+}
+
+func (m NaiveMonoid) Multiplicity() int {
+	return m.m
 }
