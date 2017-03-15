@@ -1,8 +1,7 @@
 package nm
 
 // #cgo LDFLAGS: -lcilkrts
-// #cgo CPPFLAGS: -Wno-cpp -fPIC -g -O3 -fcilkplus -DNDEBUG -march=native -mtune=native
-// #cgo CXXFLAGS: -std=c++11
+// #cgo CXXFLAGS: -std=c++11 -Wno-cpp -fPIC -g -O3 -fcilkplus -march=native -mtune=native
 // #include "ctreewalk.h"
 import "C"
 
@@ -14,13 +13,17 @@ import (
 	"github.com/intel-go/cpuid"
 )
 
-type GoMonoid struct {
-	m C.Monoid
-}
+type (
+	MonoidResults [C.MAX_GENUS]C.ulong
+
+	GoMonoid struct {
+		m C.Monoid
+	}
+)
 
 func init() {
 	if C.MAX_GENUS < 16 {
-		panic("This package has been compiled with MAX_GENUS<=16 but it is not supported")
+		panic("This package has been compiled with MAX_GENUS <= 16 but it is not supported")
 	}
 
 	if !cpuid.HasFeature(cpuid.SSSE3) {
@@ -50,6 +53,20 @@ func (gm GoMonoid) Walk() ([]uint, time.Duration) {
 	cres := C.WalkChildren(gm.m)
 	// WARNING: casting C.ulong into uint is not guaranteed to be valid
 	return (*[1 << 30]uint)(unsafe.Pointer(cres))[:C.MAX_GENUS:C.MAX_GENUS], time.Since(start)
+}
+
+func (gm GoMonoid) WalkChildrenStack(results MonoidResults) {
+	C.WalkChildrenStack(gm.m, (*C.ulong)(unsafe.Pointer(&results[0])))
+}
+
+func (gm GoMonoid) RemoveGenerator(gen C.uint) GoMonoid {
+	var new GoMonoid
+	new.m = C.RemoveGenerator(gm.m, gen)
+	return new
+}
+
+func (gm GoMonoid) Genus() C.uint {
+	return C.Genus(gm.m)
 }
 
 func (gm GoMonoid) Free() {

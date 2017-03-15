@@ -43,6 +43,6 @@ extern cilk::reducer_list_append<monoid> cilk_list_results;
 #endif
 
 
-void walk_children(const monoid &m);
-void walk_children(const monoid &m, ind_t bound);
-void list_children(const monoid &m, ind_t bound);
+void walk_children(monoid m);
+void walk_children(monoid m, ind_t bound);
+void list_children(monoid m, ind_t bound);

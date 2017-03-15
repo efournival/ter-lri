@@ -45,6 +45,7 @@ inline void remove_generator(monoid &__restrict__ dst,
 		      ind_t gen);
 inline monoid remove_generator(const monoid &src, ind_t gen);
 
+
 // typedef enum { ALL, CHILDREN } generator_type;
 class ALL {};
 class CHILDREN {};

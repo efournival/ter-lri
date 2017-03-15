@@ -5,11 +5,20 @@
 extern "C" {
 #endif
 
-	typedef void* Monoid;
-	int InitCilk();
-	unsigned long* WalkChildren(Monoid);
-	Monoid InitFullN(void);
-	void FreeMonoid(Monoid);
+typedef void* Monoid;
+int InitCilk();
+unsigned long* WalkChildren(Monoid);
+Monoid InitFullN(void);
+Monoid RemoveGenerator(Monoid, unsigned int);
+void WalkChildrenStack(Monoid, long unsigned int*);
+unsigned int Genus(Monoid);
+void FreeMonoid(Monoid);
+
+typedef void* GeneratorIterator;
+GeneratorIterator NewGeneratorIterator(Monoid);
+int MoveNext(GeneratorIterator);
+unsigned int GetGen(GeneratorIterator);
+void FreeGeneratorIterator(GeneratorIterator);
 
 #ifdef __cplusplus
 }
