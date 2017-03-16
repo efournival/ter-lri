@@ -13,12 +13,12 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 - [x] Parallélisation et optimisation basique
 - [x] Étude comparative avec la version optimisée en C++
 - [x] Profiler le code Go avec `perf` et `pprof`
-- [x] Utilisation de cgo avec appel au code de `NumericMonoid` généré par GCC
-- [ ] Documentation détaillée du fonctionnement des algorithmes (naïf et optimisé)
-- [ ] Mise en place du vol de tâche
-- [ ] Implémentation du système distribué
+- [x] Utilisation de `cgo` avec appel au code de `NumericMonoid` généré par GCC
+- [ ] Traduction de la boucle principale en Go natif utilisant les Goroutines à la place de Cilk du code original
+- [ ] Implémentation d'une librairie fork-join distribuée
+- [ ] Mise en place du vol de tâche au sein du modèle fork-join
 - [ ] Mise en place du cluster : image, SSH/DSH, etc.
-- [ ] Finalisation du système distribué et lancement des calculs
+- [ ] Finalisation et lancement des calculs
 - [ ] Terminer d'écrire le rapport et préparer la soutenance
 
 ## Problèmes complémentaires
@@ -27,7 +27,7 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 * [Mise en place du vol de tâche](https://github.com/Didayolo/spark) dans [Spark](http://spark.apache.org/)
 * Utiliser des instructions AVX1 voire AVX2
 * Test du compilateur Intel et de LLVM/Clang
-* Rapporter le bug concernant les mauvais avertissements sur les indices de tableaux à GCC
+* [Bug Cilk dans GCC](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80038)
 
 ## Ressources
 

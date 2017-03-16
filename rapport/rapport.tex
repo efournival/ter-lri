@@ -248,7 +248,22 @@ Installation au LRI, explications :
 \subsection*{Autonomie}
 \begin{itemize}
 	\item	nettoyage du dépôt et mise au propre des versions naïves et optimisées afin d'uniformiser les tests
-	\item	attention à une possible régression de Go lors du passage en version 1.8 : les mesures de temps des appels au code original de \texttt{NumericMonoid} semblent différer alors qu'elles étaient identiques avant
+	\item	mise en place d'une VM et lancement de la compilation sous GCC 7 afin de déterminer si le problème de résultats faux était toujours présent : c'est le cas
+	\item	implémentation en Go de la boucle principale
+\end{itemize}
+
+\subsection*{Jeudi 9 février}
+\begin{itemize}
+	\item	débogage du bug affectant les versions de GCC $\geq$ 6, découverte d'un correctif qui consiste à passer le monoïde à explorer par valeur plutôt que par référence, isolation du bug
+	\item	suite de l'implémentation de la boucle principale : ajout de \emph{bindings} supplémentaires
+\end{itemize}
+
+\subsection*{Autonomie}
+\begin{itemize}
+	\item	le bug\footnote{\url{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80038}} est remonté à l'équipe de GCC, à première vue il s'agit d'un mauvais appel des destructeurs dans la fonction parent ce qui conduit à un accès sur pointeur nul dans la fonction fille (lancée via \texttt{cilk\_spawn})\footnote{\url{https://gcc.gnu.org/ml/gcc-help/2017-03/msg00037.html}}
+	\item	documentation du bug découvert
+	\item	mise en place des packages Go et du code haut niveau dans \texttt{DANSE}
+	\item	suite de l'implémentation de la boucle principale : cela prend du temps à cause de la mise en place des \emph{bindings} Go, de la traduction du typage et des tests unitaires
 \end{itemize}
 
 \section*{Résultats}
