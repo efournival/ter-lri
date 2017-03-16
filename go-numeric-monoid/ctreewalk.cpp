@@ -35,12 +35,12 @@ Monoid RemoveGenerator(Monoid nm, unsigned int generator)
 	return (void*)m;
 }
 
-void WalkChildrenStack(Monoid nm, long unsigned int* results)
+void WalkChildrenStack(Monoid nm, unsigned long int* results)
 {
-	walk_children_stack(*(monoid*)nm, *reinterpret_cast<long unsigned int(*)[MAX_GENUS]>(results));
+	walk_children_stack(*(monoid*)nm, results);
 }
 
-unsigned int Genus(Monoid nm) 
+unsigned int Genus(Monoid nm)
 {
 	return ((monoid*)nm)->genus;
 }

@@ -19,7 +19,6 @@ func (ggi GoGeneratorIterator) MoveNext() bool {
 	return C.MoveNext(ggi.gi) != 0
 }
 
-// Here, uint == uint_fast64_t == uint64_t
 func (ggi GoGeneratorIterator) GetGen() uint {
 	return uint(C.GetGen(ggi.gi))
 }

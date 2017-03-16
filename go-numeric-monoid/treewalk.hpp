@@ -4,8 +4,8 @@
 #include "monoid.hpp"
 
 typedef unsigned long int results_type[MAX_GENUS];
-void walk_children_stack(monoid m, results_type &res);
-void walk_children_stack(monoid m, ind_t bound, results_type &res);
+void walk_children_stack(monoid m, results_type res);
+void walk_children_stack(monoid m, ind_t bound, results_type res);
 
 struct Results
 {
@@ -43,6 +43,6 @@ extern cilk::reducer_list_append<monoid> cilk_list_results;
 #endif
 
 
-void walk_children(monoid m);
-void walk_children(monoid m, ind_t bound);
-void list_children(monoid m, ind_t bound);
+void walk_children(const monoid m);
+void walk_children(const monoid &m, ind_t bound);
+void list_children(const monoid &m, ind_t bound);

@@ -10,7 +10,7 @@ int InitCilk();
 unsigned long* WalkChildren(Monoid);
 Monoid InitFullN(void);
 Monoid RemoveGenerator(Monoid, unsigned int);
-void WalkChildrenStack(Monoid, long unsigned int*);
+void WalkChildrenStack(Monoid, unsigned long int*);
 unsigned int Genus(Monoid);
 void FreeMonoid(Monoid);
 

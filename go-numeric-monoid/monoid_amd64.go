@@ -7,14 +7,13 @@ import "C"
 
 import (
 	"runtime"
-	"time"
 	"unsafe"
 
 	"github.com/intel-go/cpuid"
 )
 
 type (
-	MonoidResults [C.MAX_GENUS]C.ulong
+	MonoidResults [C.MAX_GENUS]uint64
 
 	GoMonoid struct {
 		m C.Monoid
@@ -48,25 +47,22 @@ func NewMonoid() GoMonoid {
 	return gm
 }
 
-func (gm GoMonoid) Walk() ([]uint, time.Duration) {
-	start := time.Now()
+func (gm GoMonoid) Walk() []uint64 {
 	cres := C.WalkChildren(gm.m)
-	// WARNING: casting C.ulong into uint is not guaranteed to be valid
-	return (*[1 << 30]uint)(unsafe.Pointer(cres))[:C.MAX_GENUS:C.MAX_GENUS], time.Since(start)
+	return (*[1 << 30]uint64)(unsafe.Pointer(cres))[:C.MAX_GENUS:C.MAX_GENUS]
 }
 
-func (gm GoMonoid) WalkChildrenStack(results MonoidResults) {
+func (gm GoMonoid) WalkChildrenStack(results *MonoidResults) {
 	C.WalkChildrenStack(gm.m, (*C.ulong)(unsafe.Pointer(&results[0])))
 }
 
-func (gm GoMonoid) RemoveGenerator(gen C.uint) GoMonoid {
-	var new GoMonoid
-	new.m = C.RemoveGenerator(gm.m, gen)
-	return new
+func (gm GoMonoid) RemoveGenerator(gen uint) (res GoMonoid) {
+	res.m = C.RemoveGenerator(gm.m, C.uint(gen))
+	return
 }
 
-func (gm GoMonoid) Genus() C.uint {
-	return C.Genus(gm.m)
+func (gm GoMonoid) Genus() uint64 {
+	return uint64(C.Genus(gm.m))
 }
 
 func (gm GoMonoid) Free() {

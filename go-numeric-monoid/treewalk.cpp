@@ -7,7 +7,7 @@ using namespace std::chrono;
 
 #include "treewalk.hpp"
 
-void walk_children_stack(monoid m, results_type &res)
+void walk_children_stack(monoid m, results_type res)
 {
   unsigned long int nbr;
   monoid data[MAX_GENUS-1], *stack[MAX_GENUS], *current;
@@ -46,7 +46,7 @@ void walk_children_stack(monoid m, results_type &res)
 ResultsReducer cilk_results;
 
 #define STACK_BOUND 11
-void walk_children(monoid m)
+void walk_children(const monoid m)
 {
   unsigned long int nbr = 0;
 
@@ -67,7 +67,7 @@ void walk_children(monoid m)
 
 
 
-void walk_children_stack(monoid m, ind_t bound, results_type &res)
+void walk_children_stack(monoid m, ind_t bound, results_type res)
 {
   unsigned long int nbr;
   monoid data[bound], *stack[bound], *current;
@@ -102,7 +102,7 @@ void walk_children_stack(monoid m, ind_t bound, results_type &res)
     }
 }
 
-void walk_children(monoid m, ind_t bound)
+void walk_children(const monoid &m, ind_t bound)
 {
   unsigned long int nbr = 0;
 
@@ -127,7 +127,7 @@ cilk::reducer_list_append<monoid, tbb::scalable_allocator<monoid>> cilk_list_res
 cilk::reducer_list_append<monoid> cilk_list_results;
 #endif
 
-void list_children(monoid m, ind_t bound)
+void list_children(const monoid &m, ind_t bound)
 {
   if (m.genus < bound)
     {
@@ -147,6 +147,7 @@ static void show_usage(string name)
 {
   cerr << "Usage: " << name << " [-n <proc_number>] " << endl;
 }
+
 
 /*int main(int argc, char **argv)
 {
