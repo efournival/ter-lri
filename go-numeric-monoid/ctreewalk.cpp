@@ -66,6 +66,11 @@ unsigned int GetGen(GeneratorIterator gi)
 	return ((generator_iter<CHILDREN>*)gi)->get_gen();
 }
 
+uint8_t Count(GeneratorIterator gi)
+{
+	return ((generator_iter<CHILDREN>*)gi)->count();
+}
+
 void FreeGeneratorIterator(GeneratorIterator gi)
 {
 	delete (generator_iter<CHILDREN>*)gi;

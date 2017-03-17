@@ -23,6 +23,10 @@ func (ggi GoGeneratorIterator) GetGen() uint {
 	return uint(C.GetGen(ggi.gi))
 }
 
+func (ggi GoGeneratorIterator) Count() uint8 {
+	return uint8(C.Count(ggi.gi))
+}
+
 func (ggi GoGeneratorIterator) Free() {
 	C.FreeGeneratorIterator(ggi.gi)
 }

@@ -1,6 +1,8 @@
 #ifndef _GO_TREEWALK_H_
 #define _GO_TREEWALK_H_
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,6 +20,7 @@ typedef void* GeneratorIterator;
 GeneratorIterator NewGeneratorIterator(Monoid);
 int MoveNext(GeneratorIterator);
 unsigned int GetGen(GeneratorIterator);
+uint8_t Count(GeneratorIterator);
 void FreeGeneratorIterator(GeneratorIterator);
 
 #ifdef __cplusplus
