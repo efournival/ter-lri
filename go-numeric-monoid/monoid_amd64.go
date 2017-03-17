@@ -6,7 +6,6 @@ package nm
 import "C"
 
 import (
-	"runtime"
 	"unsafe"
 
 	"github.com/intel-go/cpuid"
@@ -36,9 +35,6 @@ func init() {
 	if int(C.InitCilk()) <= 0 {
 		panic("Cilk initialization failed")
 	}
-
-	// This is not mandatory but it helps with timing consistency
-	runtime.LockOSThread()
 }
 
 func NewMonoid() GoMonoid {
