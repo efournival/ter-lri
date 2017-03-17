@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"sync"
-	"sync/atomic"
 
 	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
@@ -13,35 +11,38 @@ const (
 	STACK_BOUND = 11
 )
 
-var r nm.MonoidResults
-
 func main() {
-	m := nm.NewMonoid()
-	WalkChildren(m)
-	fmt.Printf("Got:\n\t%v\n", r)
+	fmt.Printf("Got:\n\t%v\n", WalkChildren(nm.NewMonoid()))
 }
 
-func WalkChildren(m nm.GoMonoid) {
-	var wg sync.WaitGroup
-
+func WalkChildren(m nm.GoMonoid) (res nm.MonoidResults) {
 	if m.Genus() < MAX_GENUS-STACK_BOUND {
-		it := m.NewIterator()
+		iter := m.NewIterator()
+		rchan := make(chan nm.MonoidResults)
 		var nbr uint64 = 0
 
-		for it.MoveNext() {
-			wg.Add(1)
-			go func(gen uint) {
-				WalkChildren(m.RemoveGenerator(gen))
-				wg.Done()
-			}(it.GetGen())
-			nbr++
+		// Fork
+		go func(it nm.GoGeneratorIterator, ch chan nm.MonoidResults) {
+			for it.MoveNext() {
+				ch <- WalkChildren(m.RemoveGenerator(it.GetGen()))
+				nbr++
+			}
+			close(ch)
+		}(iter, rchan)
+
+		// Join & reduce
+		for r := range rchan {
+			for k, v := range r {
+				res[k] += v
+			}
 		}
 
-		wg.Wait()
-		atomic.AddUint64(&r[m.Genus()], nbr)
+		res[m.Genus()] += nbr
+		iter.Free()
 	} else {
-		m.WalkChildrenStack(&r)
+		m.WalkChildrenStack(&res)
 	}
 
 	m.Free()
+	return
 }
