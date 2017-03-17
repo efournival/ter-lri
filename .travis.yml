@@ -1,5 +1,15 @@
 language: go
+compiler: gcc
+dist: trusty
 
-before_install: cd danse
-install: go get
-script: go test -v
+before_install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+  - cd danse
+
+install:
+  - sudo apt-get install -qq g++-6
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
+  - CGO_CPPFLAGS='-DMAX_GENUS=35' go get "github.com/efournival/ter-lri/go-numeric-monoid"
+
+script: CGO_CPPFLAGS='-DMAX_GENUS=35' go test -v
