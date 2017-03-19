@@ -17,28 +17,26 @@ func main() {
 
 func WalkChildren(m nm.GoMonoid) (res nm.MonoidResults) {
 	if m.Genus() < MAX_GENUS-STACK_BOUND {
-		iter := m.NewIterator()
-		rchan := make(chan nm.MonoidResults)
+		it := m.NewIterator()
+		var srchan []chan nm.MonoidResults
 		var nbr uint64 = 0
 
-		// Fork
-		go func(it nm.GoGeneratorIterator, ch chan nm.MonoidResults) {
-			for it.MoveNext() {
-				ch <- WalkChildren(m.RemoveGenerator(it.GetGen()))
-				nbr++
-			}
-			close(ch)
-		}(iter, rchan)
+		for it.MoveNext() {
+			srchan = append(srchan, make(chan nm.MonoidResults))
+			go func(gen uint, rchan chan nm.MonoidResults) {
+				rchan <- WalkChildren(m.RemoveGenerator(gen))
+			}(it.GetGen(), srchan[nbr])
+			nbr++
+		}
 
-		// Join & reduce
-		for r := range rchan {
-			for k, v := range r {
+		for _, r := range srchan {
+			for k, v := range <-r {
 				res[k] += v
 			}
 		}
 
 		res[m.Genus()] += nbr
-		iter.Free()
+		it.Free()
 	} else {
 		m.WalkChildrenStack(&res)
 	}
