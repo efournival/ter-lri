@@ -22,7 +22,6 @@
 \usepackage[noend]{algorithmic}
 \renewcommand{\algorithmicif}{\textbf{si}}
 \renewcommand{\algorithmicthen}{\textbf{alors}}
-
 \renewcommand{\algorithmicfor}{\textbf{pour}}
 \renewcommand{\algorithmicdo}{\textbf{faire}}
 
@@ -48,6 +47,8 @@
 \begin{document}
 
 \section*{Introduction}
+
+\subsection*{Contexte}
 
 \subsection*{Mission}
 Ce TER consiste en la distribution d'un calcul combinatoire sur plusieurs machines. Il s'agit de compter le nombre de semigroupes numériques par exploration d'arbre jusqu'à une profondeur donnée.
@@ -148,6 +149,15 @@ La structure de données mise en place ici comporte :
 Le but de cet algorithme est de calculer le nombre de combinaisons.
 
 Pour chaque nombre, si il possède au moins une combinaison, alors il est générateur du semigroupe.
+
+\subsection*{Bug GCC Cilk n°80038}
+Certaines méthodes de l'implémentation originale réalisée par Florent Hivert et Jean Fromentin font appel à du code spécifique très optimisé que seul certains compilateurs, ici GCC pour le langage C++, peuvent générer. C'est pour cela que des \emph{bindings} Go ont dû être implémentés afin de faire le lien entre le code généré par GCC et les fonctionnalités plus haut niveau (notamment côté réseau) du langage Go.
+
+Ces \emph{bindings} ont été mis en place conjointement avec des tests unitaires. Ces derniers sont, en plus d'être fortement recommandés en général, omniprésents dans les développements réalisés en Go. En effet, le langage propose divers outils pour réaliser très simplement et rapidement ce genre de tests : la commande \texttt{go test}, le package \texttt{testing}, etc.
+
+C'est donc dans ce cadre que je me suis rendu compte que les résultats (le comptage du nombre de semigroupes) renvoyés par les différentes explorations de l'arbre étaient incorrects, bien qu'aucune erreur ne soit remontée. Ces résultats incohérents sont rencontrés avec le code original de \texttt{NumericMonoid}.
+
+À la suite de nombreux tests, le problème a été identifié comme lié à la version du compilateur GCC. Ma machine de travail personnelle étant sous ArchLinux, je dispose de la dernière version stable (GCC 6) qui engendre ces résultats incorrects. Le développement de \texttt{NumericMonoid} ayant été réalisé à l'aide de GCC 5, les valeurs retournées étaient correctes jusque là.
 
 \section*{Déroulement}
 
@@ -252,7 +262,7 @@ Installation au LRI, explications :
 	\item	implémentation en Go de la boucle principale
 \end{itemize}
 
-\subsection*{Jeudi 9 février}
+\subsection*{Jeudi 9 mars}
 \begin{itemize}
 	\item	débogage du bug affectant les versions de GCC $\geq$ 6, découverte d'un correctif qui consiste à passer le monoïde à explorer par valeur plutôt que par référence, isolation du bug
 	\item	suite de l'implémentation de la boucle principale : ajout de \emph{bindings} supplémentaires
@@ -261,9 +271,18 @@ Installation au LRI, explications :
 \subsection*{Autonomie}
 \begin{itemize}
 	\item	le bug\footnote{\url{https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80038}} est remonté à l'équipe de GCC, à première vue il s'agit d'un mauvais appel des destructeurs dans la fonction parent ce qui conduit à un accès sur pointeur nul dans la fonction fille (lancée via \texttt{cilk\_spawn})\footnote{\url{https://gcc.gnu.org/ml/gcc-help/2017-03/msg00037.html}}
-	\item	documentation du bug découvert
-	\item	mise en place des packages Go et du code haut niveau dans \texttt{DANSE}
+	\item	mise en place du \emph{workflow} Go ainsi que du code haut niveau dans \texttt{danse}
 	\item	suite de l'implémentation de la boucle principale : cela prend du temps à cause de la mise en place des \emph{bindings} Go, de la traduction du typage et des tests unitaires
+	\item	finalisation de l'intégration continue
+\end{itemize}
+
+\subsection*{Jeudi 23 mars}
+\begin{itemize}
+	\item	présentation\footnote{\url{http://stackoverflow.com/questions/42816920/data-race-in-cilk-home-made-reducer}} du problème de \emph{race condition} dans Cilk
+	\item	explications sur les différents niveaux de l'exploration de l'arbre : Cilk, instruction \texttt{popcount}, etc.
+	\item	confirmation que l'ordonnanceur de Go est adapté à notre problème : pas d'explosion de la mémoire allouée ou de ralentissement quand un grand nombre de goroutines sont lancées
+	\item	évaluation des performances de l'ordonnanceur de Go et des channels : moins bien que Cilk et du C++ optimisé mais satisfaisant
+	\item	suite des opérations : distribuer le lancement des goroutines
 \end{itemize}
 
 \section*{Résultats}
