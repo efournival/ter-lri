@@ -87,7 +87,6 @@ Le dépôt contient plusieurs dossiers :
 \begin{itemize}
 	\item	\texttt{danse} : la version finale nommée DANSE pour \emph{Distributed Array of Numerical Semigroup Explorations}, soit en français un réseau distribué d'exploration de semigroupes numériques;
 	\item	\texttt{go-numeric-monoid} : les \emph{bindings} Go de l'algorithme optimisé écrit en \texttt{C++};
-	\item	\texttt{go-fork-join} : la librairie réalisée dans le cadre de ce TER qui permet de mettre en place un modèle fork-join\footnote{\url{https://en.wikipedia.org/wiki/Fork-join_model}} en Go avec à terme un système de vol de tâches
 	\item	\texttt{simple-implementation} : implémentation propre avec tests unitaires de l'algorithme naïf et de l'algorithme optimisé, non parallélisée;
 \end{itemize}
 
@@ -283,6 +282,12 @@ Installation au LRI, explications :
 	\item	confirmation que l'ordonnanceur de Go est adapté à notre problème : pas d'explosion de la mémoire allouée ou de ralentissement quand un grand nombre de goroutines sont lancées
 	\item	évaluation des performances de l'ordonnanceur de Go et des channels : moins bien que Cilk et du C++ optimisé mais satisfaisant
 	\item	suite des opérations : distribuer le lancement des goroutines
+\end{itemize}
+
+\subsection*{Autonomie}
+\begin{itemize}
+	\item	réflexion sur la possible utilisation d'un algorithme de \emph{machine learning} pour ajuster et optimiser les différents paramètres au fur et à mesure du calcul
+	\item	implémentation du système distribué
 \end{itemize}
 
 \section*{Résultats}
