@@ -1,0 +1,5 @@
+{
+	"workers" : [
+		"localhost:37764"
+	]
+}
