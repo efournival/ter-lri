@@ -4,6 +4,8 @@
 #include <cilk/cilk_api.h>
 #include <iostream>
 
+const int SIZEOF_MONOID = sizeof(monoid);
+
 int InitCilk()
 {
 	std::string nproc = "0";
@@ -28,7 +30,7 @@ unsigned long* WalkChildren(Monoid nm)
 	return res;
 }
 
-Monoid RemoveGenerator(Monoid nm, unsigned int generator)
+Monoid RemoveGenerator(Monoid nm, uint_fast64_t generator)
 {
 	monoid *m = new monoid;
 	remove_generator(*m, *(monoid*)nm, generator);
@@ -45,15 +47,9 @@ unsigned int Genus(Monoid nm)
 	return ((monoid*)nm)->genus;
 }
 
-void FreeMonoid(Monoid nm)
-{
-	delete (monoid*)nm;
-}
-
 GeneratorIterator NewGeneratorIterator(Monoid nm)
 {
-	auto *it = new generator_iter<CHILDREN>(*(monoid*)nm);
-	return (void*)it;
+	return (void*)new generator_iter<CHILDREN>(*(monoid*)nm);
 }
 
 int MoveNext(GeneratorIterator gi)
@@ -61,7 +57,7 @@ int MoveNext(GeneratorIterator gi)
 	return ((generator_iter<CHILDREN>*)gi)->move_next();
 }
 
-unsigned int GetGen(GeneratorIterator gi)
+uint_fast64_t GetGen(GeneratorIterator gi)
 {
 	return ((generator_iter<CHILDREN>*)gi)->get_gen();
 }
@@ -69,9 +65,4 @@ unsigned int GetGen(GeneratorIterator gi)
 uint8_t Count(GeneratorIterator gi)
 {
 	return ((generator_iter<CHILDREN>*)gi)->count();
-}
-
-void FreeGeneratorIterator(GeneratorIterator gi)
-{
-	delete (generator_iter<CHILDREN>*)gi;
 }

@@ -38,12 +38,10 @@ func main() {
 			}
 
 			res[m.Genus()] += nbr
-			it.Free()
 		} else {
 			m.WalkChildrenStack(&res)
 		}
 
-		m.Free()
 		return
 	})
 

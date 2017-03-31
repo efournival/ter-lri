@@ -3,7 +3,9 @@ package nm
 // #cgo LDFLAGS: -lcilkrts
 // #cgo CXXFLAGS: -std=c++11 -Wno-cpp -fPIC -g -O3 -fcilkplus -march=native -mtune=native
 // #include "ctreewalk.h"
+// #include <stdlib.h>
 import "C"
+import "unsafe"
 
 type GoGeneratorIterator struct {
 	gi C.GeneratorIterator
@@ -12,6 +14,12 @@ type GoGeneratorIterator struct {
 func (gm GoMonoid) NewIterator() GoGeneratorIterator {
 	var ggi GoGeneratorIterator
 	ggi.gi = C.NewGeneratorIterator(gm.m)
+
+	// This is bugged for an unknown reason
+	//runtime.SetFinalizer(&ggi, func(ggi *GoGeneratorIterator) {
+	//	C.free(unsafe.Pointer(ggi.gi))
+	//})
+
 	return ggi
 }
 
@@ -19,8 +27,8 @@ func (ggi GoGeneratorIterator) MoveNext() bool {
 	return C.MoveNext(ggi.gi) != 0
 }
 
-func (ggi GoGeneratorIterator) GetGen() uint {
-	return uint(C.GetGen(ggi.gi))
+func (ggi GoGeneratorIterator) GetGen() uint64 {
+	return uint64(C.GetGen(ggi.gi))
 }
 
 func (ggi GoGeneratorIterator) Count() uint8 {
@@ -28,5 +36,5 @@ func (ggi GoGeneratorIterator) Count() uint8 {
 }
 
 func (ggi GoGeneratorIterator) Free() {
-	C.FreeGeneratorIterator(ggi.gi)
+	C.free(unsafe.Pointer(ggi.gi))
 }

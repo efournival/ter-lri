@@ -13,6 +13,4 @@ func TestNewTask(t *testing.T) {
 	if tsk.state != Waiting || tsk.data != nm {
 		t.Fatal("Task is badly initialized")
 	}
-
-	nm.Free()
 }

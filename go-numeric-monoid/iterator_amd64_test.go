@@ -4,7 +4,7 @@ import "testing"
 
 func TestIterator(t *testing.T) {
 	i := NewMonoid().NewIterator()
-	var out []uint
+	var out []uint64
 
 	if i.Count() != 1 {
 		t.Fatalf("Count should be 1 but got %d\n", i.Count())

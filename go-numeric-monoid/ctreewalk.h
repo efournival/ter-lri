@@ -1,7 +1,9 @@
-#ifndef _GO_TREEWALK_H_
-#define _GO_TREEWALK_H_
+#ifndef _GO_CTREEWALK_H_
+#define _GO_CTREEWALK_H_
 
 #include <stdint.h>
+
+extern const int SIZEOF_MONOID;
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,18 +12,16 @@ extern "C" {
 typedef void* Monoid;
 int InitCilk();
 unsigned long* WalkChildren(Monoid);
-Monoid InitFullN(void);
-Monoid RemoveGenerator(Monoid, unsigned int);
+Monoid InitFullN();
+Monoid RemoveGenerator(Monoid, uint_fast64_t);
 void WalkChildrenStack(Monoid, unsigned long int*);
 unsigned int Genus(Monoid);
-void FreeMonoid(Monoid);
 
 typedef void* GeneratorIterator;
 GeneratorIterator NewGeneratorIterator(Monoid);
 int MoveNext(GeneratorIterator);
-unsigned int GetGen(GeneratorIterator);
+uint_fast64_t GetGen(GeneratorIterator);
 uint8_t Count(GeneratorIterator);
-void FreeGeneratorIterator(GeneratorIterator);
 
 #ifdef __cplusplus
 }
