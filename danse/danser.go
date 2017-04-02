@@ -12,22 +12,22 @@ type (
 	WorkerFunc func(nm.GoMonoid) nm.MonoidResults
 	MasterFunc func(chan bool)
 
-	parameter struct {
-		min, max, value int
+	Parameter struct {
+		Min, Max, Value int
 	}
 
 	Danser struct {
 		workerFunc WorkerFunc
 		masterFunc MasterFunc
-		parameters map[string]parameter
-		workers    []*worker
-		server     *server
+		parameters map[string]Parameter
+		workers    []*Worker
+		server     *Server
 	}
 )
 
 func NewDanser() (d *Danser) {
 	d = &Danser{}
-	d.parameters = make(map[string]parameter)
+	d.parameters = make(map[string]Parameter)
 
 	d.workerFunc = func(gm nm.GoMonoid) nm.MonoidResults {
 		panic("Worker function is not defined")
@@ -62,7 +62,7 @@ func (d *Danser) LoadConfig(filename string) error {
 		return err
 	}
 
-	d.server = NewServer(config.port)
+	d.server = NewServer(":" + config.port)
 
 	for _, address := range config.addresses {
 		worker, err := NewWorker(address)
@@ -80,11 +80,11 @@ func (d *Danser) LoadConfig(filename string) error {
 }
 
 func (d *Danser) RegisterParameter(name string, min, max, value int) {
-	d.parameters[name] = parameter{min, max, value}
+	d.parameters[name] = Parameter{min, max, value}
 }
 
 func (d *Danser) Parameter(name string) int {
-	return d.parameters[name].value
+	return d.parameters[name].Value
 }
 
 func (d *Danser) WorkerFunc(wf WorkerFunc) {
@@ -94,7 +94,7 @@ func (d *Danser) WorkerFunc(wf WorkerFunc) {
 func (d *Danser) MasterFunc(mf func()) {
 	d.masterFunc = func(finished chan bool) {
 		mf()
-		close(finished)
+		finished <- true
 	}
 }
 
@@ -103,17 +103,17 @@ func (d *Danser) Work(gm nm.GoMonoid) nm.MonoidResults {
 }
 
 func (d *Danser) Danse(isMaster bool) {
-	finishedServe, finishedMaster := make(chan bool), make(chan bool)
+	finishedMaster := make(chan bool, 1)
 
 	if d.server == nil {
 		panic("DANSE configuration has not been loaded")
 	}
 
-	err := d.server.Listen(finishedServe)
-
-	if err != nil {
-		panic(err)
-	}
+	go func() {
+		if err := d.server.Listen(); err != nil {
+			panic(err)
+		}
+	}()
 
 	if isMaster {
 		log.Println("Starting DANSE as the master process")
@@ -122,10 +122,8 @@ func (d *Danser) Danse(isMaster bool) {
 		log.Println("Starting DANSE as worker")
 	}
 
-	select {
-	case <-finishedServe:
-	case <-finishedMaster:
+	// Wait indefinitely if worker, until computation is finished if master
+	if <-finishedMaster {
+		log.Println("DANSE finished")
 	}
-
-	log.Println("DANSE finished")
 }

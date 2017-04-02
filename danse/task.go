@@ -5,11 +5,11 @@ import "github.com/efournival/ter-lri/go-numeric-monoid"
 type (
 	TaskState uint8
 
-	task struct {
-		identifier uint64
-		state      TaskState
-		data       nm.GoMonoid
-		results    nm.MonoidResults
+	Task struct {
+		Identifier uint64
+		State      TaskState
+		Data       nm.MonoidStorage
+		Results    nm.MonoidResults
 	}
 )
 
@@ -18,7 +18,7 @@ const (
 	Processing
 )
 
-func NewTask(data nm.GoMonoid, identifier uint64) *task {
+func NewTask(data nm.GoMonoid, identifier uint64) *Task {
 	var mr nm.MonoidResults
-	return &task{identifier, Waiting, data, mr}
+	return &Task{identifier, Waiting, data.GetBytes(), mr}
 }

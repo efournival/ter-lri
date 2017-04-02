@@ -25,7 +25,7 @@ func main() {
 
 			for it.MoveNext() {
 				srchan = append(srchan, make(chan nm.MonoidResults))
-				go func(gen uint, rchan chan nm.MonoidResults) {
+				go func(gen uint64, rchan chan nm.MonoidResults) {
 					rchan <- danser.Work(m.RemoveGenerator(gen))
 				}(it.GetGen(), srchan[nbr])
 				nbr++
@@ -38,6 +38,7 @@ func main() {
 			}
 
 			res[m.Genus()] += nbr
+			it.Free()
 		} else {
 			m.WalkChildrenStack(&res)
 		}

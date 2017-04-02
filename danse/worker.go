@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"log"
 	"net"
 
 	kcp "github.com/xtaci/kcp-go"
@@ -11,23 +12,34 @@ import (
 type (
 	WorkerState int
 
-	worker struct {
-		connection net.Conn
-		buffer     bytes.Buffer
+	Worker struct {
+		Connection net.Conn
+		Buffer     bytes.Buffer
 	}
 )
 
-func NewWorker(address string) (*worker, error) {
+func NewWorker(address string) (*Worker, error) {
 	conn, err := kcp.Dial(address)
-	return &worker{connection: conn}, err
+	return &Worker{Connection: conn}, err
 }
 
-func (w *worker) SendWork(t *task) {
-	w.buffer.Reset()
-	binary.Write(&w.buffer, binary.BigEndian, t)
-	w.connection.Write(w.buffer.Bytes())
+func (w *Worker) SendWork(t *Task) {
+	w.Buffer.Reset()
+
+	err := binary.Write(&w.Buffer, binary.BigEndian, *t)
+
+	if err != nil {
+		log.Println("Binary write failed:", err.Error())
+		return
+	}
+
+	_, err = w.Connection.Write(w.Buffer.Bytes())
+
+	if err != nil {
+		log.Println("Connection write failed:", err.Error())
+	}
 }
 
-func (w *worker) Bye() error {
-	return w.connection.Close()
+func (w *Worker) Bye() error {
+	return w.Connection.Close()
 }

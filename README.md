@@ -14,9 +14,10 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 - [x] Étude comparative avec la version optimisée en C++
 - [x] Profiler le code Go avec `perf` et `pprof`
 - [x] Utilisation de `cgo` avec appel au code de `NumericMonoid` généré par GCC
-- [ ] Traduction de la boucle principale en Go natif utilisant les Goroutines à la place de Cilk du code original
-- [ ] Implémentation d'une librairie fork-join distribuée
+- [x] Traduction de la boucle principale en Go natif utilisant les Goroutines à la place de Cilk du code original
+- [ ] Implémentation d'un système de type fork-join distribué
 - [ ] Mise en place du vol de tâche au sein du modèle fork-join
+- [ ] Utilisation d'un algorithme de machine learning pour trouver les meilleurs paramètres durant l'exécution des calculs
 - [ ] Mise en place du cluster : image, SSH/DSH, etc.
 - [ ] Finalisation et lancement des calculs
 - [ ] Terminer d'écrire le rapport et préparer la soutenance

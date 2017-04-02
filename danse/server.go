@@ -2,52 +2,59 @@ package main
 
 import (
 	"encoding/binary"
+	"log"
 	"net"
 
 	kcp "github.com/xtaci/kcp-go"
 )
 
-type (
-	ReceiveFunc func(net.Conn)
-
-	server struct {
-		address     string
-		listener    net.Listener
-		receiveFunc ReceiveFunc
-	}
-)
-
-func NewServer(port string) *server {
-	return &server{"localhost:" + port, nil, nil}
+type Server struct {
+	Address  string
+	Listener net.Listener
+	OnAccept func(net.Conn)
 }
 
-func (s *server) Listen(finished chan bool) (err error) {
-	s.listener, err = kcp.Listen(s.address)
+func NewServer(addr string) (s *Server) {
+	s = &Server{addr, nil, nil}
+
+	s.AcceptFunc(func(t Task) {
+		log.Println("Receive function is not defined")
+	})
+
+	return
+}
+
+func (s *Server) Listen() (err error) {
+	s.Listener, err = kcp.Listen(s.Address)
 
 	if err != nil {
 		return
 	}
 
-	go func() {
-		for {
-			conn, err := s.listener.Accept()
+	for {
+		conn, aerr := s.Listener.Accept()
 
-			if err == nil {
-				go s.receiveFunc(conn)
-			}
+		if aerr != nil {
+			log.Println("Listener accept failed:", aerr.Error())
+		} else {
+			go s.OnAccept(conn)
 		}
-
-		close(finished)
-	}()
+	}
 
 	return
 }
 
-func (s *server) ReceiveFunc(rf func(task)) {
-	s.receiveFunc = func(c net.Conn) {
-		var tsk task
-		if binary.Read(c, binary.BigEndian, &tsk) == nil {
-			rf(tsk)
+func (s *Server) AcceptFunc(rf func(Task)) {
+	s.OnAccept = func(c net.Conn) {
+		var tsk Task
+
+		err := binary.Read(c, binary.BigEndian, &tsk)
+
+		if err != nil {
+			log.Println("Binary read failed:", err.Error())
+			return
 		}
+
+		rf(tsk)
 	}
 }
