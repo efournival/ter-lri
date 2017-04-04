@@ -9,52 +9,64 @@ import (
 )
 
 type Server struct {
-	Address  string
-	Listener net.Listener
-	OnAccept func(net.Conn)
+	Address    string
+	TaskStream chan Task
 }
 
-func NewServer(addr string) (s *Server) {
-	s = &Server{addr, nil, nil}
-
-	s.AcceptFunc(func(t Task) {
-		log.Println("Receive function is not defined")
-	})
-
+func NewServer(addr string, ts chan Task) (s *Server) {
+	s = &Server{addr, ts}
 	return
 }
 
 func (s *Server) Listen() (err error) {
-	s.Listener, err = kcp.Listen(s.Address)
+	var listener net.Listener
+	listener, err = kcp.Listen(s.Address)
 
 	if err != nil {
 		return
 	}
 
 	for {
-		conn, aerr := s.Listener.Accept()
+		conn, aerr := listener.Accept()
 
 		if aerr != nil {
 			log.Println("Listener accept failed:", aerr.Error())
 		} else {
-			go s.OnAccept(conn)
+			go s.onAccept(conn)
 		}
 	}
 
 	return
 }
 
-func (s *Server) AcceptFunc(rf func(Task)) {
-	s.OnAccept = func(c net.Conn) {
-		var tsk Task
+func (s *Server) onAccept(conn net.Conn) {
+	var srm StealRequestMessage
+	err := binary.Read(conn, binary.BigEndian, &srm)
 
-		err := binary.Read(c, binary.BigEndian, &tsk)
+	if err != nil {
+		log.Println("Binary read failed:", err.Error())
+		return
+	}
 
-		if err != nil {
-			log.Println("Binary read failed:", err.Error())
-			return
+	// TODO: min value
+	if len(s.TaskStream) > 0 {
+		var tasks []Task
+
+		for i := 0; i < int(srm.Max); i++ {
+			select {
+			// We can steal a task, add it to our steal answer
+			case t := <-s.TaskStream:
+				tasks = append(tasks, t)
+			// No task left
+			default:
+				break
+			}
 		}
 
-		rf(tsk)
+		err = binary.Write(conn, binary.BigEndian, NewStealAnswer(tasks))
+
+		if err != nil {
+			log.Println("Binary write failed:", err.Error())
+		}
 	}
 }

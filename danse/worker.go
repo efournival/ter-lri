@@ -1,45 +1,41 @@
 package main
 
 import (
-	"bytes"
 	"encoding/binary"
-	"log"
 	"net"
 
 	kcp "github.com/xtaci/kcp-go"
 )
 
-type (
-	WorkerState int
+type Worker struct {
+	connection net.Conn
+	taskStream chan Task
+}
 
-	Worker struct {
-		Connection net.Conn
-		Buffer     bytes.Buffer
-	}
-)
-
-func NewWorker(address string) (*Worker, error) {
+func NewWorker(address string, ts chan Task) (*Worker, error) {
 	conn, err := kcp.Dial(address)
-	return &Worker{Connection: conn}, err
-}
-
-func (w *Worker) SendWork(t *Task) {
-	w.Buffer.Reset()
-
-	err := binary.Write(&w.Buffer, binary.BigEndian, *t)
 
 	if err != nil {
-		log.Println("Binary write failed:", err.Error())
-		return
+		return nil, err
 	}
 
-	_, err = w.Connection.Write(w.Buffer.Bytes())
+	w := &Worker{conn, ts}
+	go w.waitForAnswers()
 
-	if err != nil {
-		log.Println("Connection write failed:", err.Error())
-	}
+	return w, err
 }
 
-func (w *Worker) Bye() error {
-	return w.Connection.Close()
+func (w *Worker) Steal(max int32) error {
+	return binary.Write(w.connection, binary.BigEndian, NewStealRequest(max))
+}
+
+func (w *Worker) waitForAnswers() {
+	for {
+		var sam StealAnswerMessage
+		binary.Read(w.connection, binary.BigEndian, &sam)
+
+		for i := 0; i < int(sam.Count); i++ {
+			w.taskStream <- sam.Tasks[i]
+		}
+	}
 }

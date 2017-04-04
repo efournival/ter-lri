@@ -4,22 +4,25 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"math/rand"
+	"time"
 
 	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
-type (
-	WorkerFunc func(nm.GoMonoid) nm.MonoidResults
-	MasterFunc func(chan bool)
+// When this number of tasks is reached, adding a task will be blocking
+const MAX_TASKS = 15
 
+type (
 	Parameter struct {
 		Min, Max, Value int
 	}
 
 	Danser struct {
-		workerFunc WorkerFunc
-		masterFunc MasterFunc
+		workerFunc func(nm.GoMonoid) nm.MonoidResults
+		masterFunc func(chan bool)
 		parameters map[string]Parameter
+		tasks      chan Task
 		workers    []*Worker
 		server     *Server
 	}
@@ -28,6 +31,7 @@ type (
 func NewDanser() (d *Danser) {
 	d = &Danser{}
 	d.parameters = make(map[string]Parameter)
+	d.tasks = make(chan Task, MAX_TASKS)
 
 	d.workerFunc = func(gm nm.GoMonoid) nm.MonoidResults {
 		panic("Worker function is not defined")
@@ -62,10 +66,10 @@ func (d *Danser) LoadConfig(filename string) error {
 		return err
 	}
 
-	d.server = NewServer(":" + config.port)
+	d.server = NewServer(":"+config.port, d.tasks)
 
 	for _, address := range config.addresses {
-		worker, err := NewWorker(address)
+		worker, err := NewWorker(address, d.tasks)
 
 		if err != nil {
 			return err
@@ -87,7 +91,7 @@ func (d *Danser) Parameter(name string) int {
 	return d.parameters[name].Value
 }
 
-func (d *Danser) WorkerFunc(wf WorkerFunc) {
+func (d *Danser) WorkerFunc(wf func(nm.GoMonoid) nm.MonoidResults) {
 	d.workerFunc = wf
 }
 
@@ -96,10 +100,6 @@ func (d *Danser) MasterFunc(mf func()) {
 		mf()
 		finished <- true
 	}
-}
-
-func (d *Danser) Work(gm nm.GoMonoid) nm.MonoidResults {
-	return d.workerFunc(gm)
 }
 
 func (d *Danser) Danse(isMaster bool) {
@@ -122,8 +122,29 @@ func (d *Danser) Danse(isMaster bool) {
 		log.Println("Starting DANSE as worker")
 	}
 
-	// Wait indefinitely if worker, until computation is finished if master
+	// Wait indefinitely if worker, or until computation is finished if master
 	if <-finishedMaster {
 		log.Println("DANSE finished")
 	}
+}
+
+func (d *Danser) Work(gm nm.GoMonoid) nm.MonoidResults {
+	// TODO: schedule
+	return d.workerFunc(gm)
+
+	//return <-d.queue(gm)
+}
+
+func (d *Danser) schedule() {
+	go func() {
+		for {
+			if len(d.tasks) == 0 {
+				// TODO: parameter
+				d.workers[rand.Intn(len(d.workers))].Steal(2)
+			}
+
+			// TODO: parameter
+			time.Sleep(500 * time.Millisecond)
+		}
+	}()
 }

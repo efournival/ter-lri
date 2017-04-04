@@ -8,9 +8,11 @@ import (
 
 func TestNewTask(t *testing.T) {
 	nm := nm.NewMonoid()
-	tsk := NewTask(nm, 0)
+	tsk := NewTask(nm)
 
-	if tsk.State != Waiting || len(tsk.Data) != len(nm.GetBytes()) {
+	if len(tsk.Data) != len(nm.GetBytes()) {
 		t.Fatal("Task is badly initialized")
+	} else {
+		t.Log("Task identifier is", tsk.Identifier)
 	}
 }
