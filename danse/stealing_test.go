@@ -16,7 +16,7 @@ var (
 )
 
 const (
-	PORT  = ":12345"
+	ADDR  = "0.0.0.0:12345"
 	TASKS = 3
 	MAX   = 2
 )
@@ -35,7 +35,7 @@ func init() {
 func TestServerInitialization(t *testing.T) {
 	t.Log("Number of tasks in input channel is", len(tinchan))
 
-	server = NewServer(PORT, tinchan)
+	server = NewServer(ADDR, tinchan)
 
 	go func() {
 		err := server.Listen()
@@ -48,7 +48,7 @@ func TestServerInitialization(t *testing.T) {
 
 func TestWorkerInitialization(t *testing.T) {
 	var err error
-	worker, err = NewWorker(PORT, toutchan)
+	worker, err = NewWorker(ADDR, toutchan)
 
 	if err != nil {
 		t.Fatal(err.Error())
