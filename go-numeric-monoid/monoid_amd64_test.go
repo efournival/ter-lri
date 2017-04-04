@@ -15,12 +15,13 @@ func CheckFirst16Results(results []uint64, t *testing.T) {
 	}
 }
 
-func TestNumericMonoidWalking(t *testing.T) {
+func TestWalkChildren(t *testing.T) {
 	nm := NewMonoid()
-	CheckFirst16Results(nm.Walk(), t)
+	res := nm.WalkChildren()
+	CheckFirst16Results(res[:], t)
 }
 
-func TestChildrenStackWalking(t *testing.T) {
+func TestWalkChildrenStack(t *testing.T) {
 	nm := NewMonoid()
 	var res MonoidResults
 	nm.WalkChildrenStack(&res)
@@ -35,7 +36,7 @@ func TestGenus(t *testing.T) {
 	}
 }
 
-func TestGettingBytes(t *testing.T) {
+func TestGetBytes(t *testing.T) {
 	nm := NewMonoid()
 	bytes := nm.GetBytes()
 	t.Logf("Got %d bytes\n", len(bytes))

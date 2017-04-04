@@ -62,8 +62,8 @@ func FromBytes(ms MonoidStorage) GoMonoid {
 	return gm
 }
 
-func (gm GoMonoid) Walk() []uint64 {
-	return (*[1 << 30]uint64)(unsafe.Pointer(C.WalkChildren(gm.m)))[:C.MAX_GENUS:C.MAX_GENUS]
+func (gm GoMonoid) WalkChildren() MonoidResults {
+	return *(*MonoidResults)(unsafe.Pointer(C.WalkChildren(gm.m)))
 }
 
 func (gm GoMonoid) WalkChildrenStack(results *MonoidResults) {
