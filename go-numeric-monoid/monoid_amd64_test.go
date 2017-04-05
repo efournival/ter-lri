@@ -17,14 +17,21 @@ func CheckFirst16Results(results []uint64, t *testing.T) {
 
 func TestWalkChildren(t *testing.T) {
 	nm := NewMonoid()
-	res := nm.WalkChildren()
-	CheckFirst16Results(res[:], t)
+
+	res1 := nm.WalkChildren()
+	CheckFirst16Results(res1[:], t)
+
+	// Running WalkChildren two times because we had a bug with reset/static values
+	res2 := nm.WalkChildren()
+	CheckFirst16Results(res2[:], t)
 }
 
 func TestWalkChildrenStack(t *testing.T) {
 	nm := NewMonoid()
+
 	var res MonoidResults
 	nm.WalkChildrenStack(&res)
+
 	CheckFirst16Results(res[:], t)
 }
 
