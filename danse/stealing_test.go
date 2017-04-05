@@ -10,25 +10,25 @@ import (
 var (
 	server   *Server
 	worker   *Worker
-	tasks    []Task
-	tinchan  chan Task
-	toutchan chan Task
+	tasks    []nm.MonoidStorage
+	tinchan  chan nm.MonoidStorage
+	toutchan chan nm.MonoidStorage
 )
 
 const (
-	ADDR  = "0.0.0.0:12345"
+	ADDR  = "localhost:12345"
 	TASKS = 3
 	MAX   = 2
 )
 
 func init() {
-	tinchan = make(chan Task, 10)
-	toutchan = make(chan Task, 10)
+	tinchan = make(chan nm.MonoidStorage, 10)
+	toutchan = make(chan nm.MonoidStorage, 10)
 
 	for i := 0; i < TASKS; i++ {
-		task := NewTask(nm.NewMonoid())
-		tinchan <- *task
-		tasks = append(tasks, *task)
+		t := nm.NewMonoid().GetBytes()
+		tinchan <- t
+		tasks = append(tasks, t)
 	}
 }
 

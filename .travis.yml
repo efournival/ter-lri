@@ -3,6 +3,7 @@ compiler: gcc
 dist: trusty
 
 before_install:
+  - sudo [ $(ip addr show | grep "inet6 ::1" | wc -l) -lt "1" ] && sudo sed -i '/^::1/d' /etc/hosts && sudo sed -i '/^127.0.1.1/d' /etc/hosts
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
   - sudo apt-get update -qq
   - cd danse

@@ -5,22 +5,22 @@ import (
 	"log"
 	"net"
 
-	kcp "github.com/xtaci/kcp-go"
+	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
 type Server struct {
 	Address    string
-	TaskStream chan Task
+	TaskStream chan nm.MonoidStorage
 }
 
-func NewServer(addr string, ts chan Task) (s *Server) {
+func NewServer(addr string, ts chan nm.MonoidStorage) (s *Server) {
 	s = &Server{addr, ts}
 	return
 }
 
 func (s *Server) Listen() (err error) {
 	var listener net.Listener
-	listener, err = kcp.Listen(s.Address)
+	listener, err = net.Listen("tcp", s.Address)
 
 	if err != nil {
 		return
@@ -50,7 +50,7 @@ func (s *Server) onAccept(conn net.Conn) {
 
 	// TODO: min value
 	if len(s.TaskStream) > 0 {
-		var tasks []Task
+		var tasks []nm.MonoidStorage
 
 		for i := 0; i < int(srm.Max); i++ {
 			select {

@@ -22,7 +22,7 @@ type (
 		workerFunc func(nm.GoMonoid) nm.MonoidResults
 		masterFunc func(chan bool)
 		parameters map[string]Parameter
-		tasks      chan Task
+		tasks      chan nm.MonoidStorage
 		workers    []*Worker
 		server     *Server
 	}
@@ -31,7 +31,7 @@ type (
 func NewDanser() (d *Danser) {
 	d = &Danser{}
 	d.parameters = make(map[string]Parameter)
-	d.tasks = make(chan Task, MAX_TASKS)
+	d.tasks = make(chan nm.MonoidStorage, MAX_TASKS)
 
 	d.workerFunc = func(gm nm.GoMonoid) nm.MonoidResults {
 		panic("Worker function is not defined")

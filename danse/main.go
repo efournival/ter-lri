@@ -9,16 +9,13 @@ import (
 
 const (
 	MAX_GENUS   = 35
-	STACK_BOUND = 1
+	STACK_BOUND = 11
 )
 
 func main() {
 	danser := NewDanser()
-
-	danser.RegisterParameter("StackBound", 0, MAX_GENUS-1, MAX_GENUS-15)
-
 	danser.WorkerFunc(func(m nm.GoMonoid) (res nm.MonoidResults) {
-		if m.Genus() < uint64(danser.Parameter("StackBound")) {
+		if m.Genus() < MAX_GENUS-STACK_BOUND {
 			it := m.NewIterator()
 			var srchan []chan nm.MonoidResults
 			var nbr uint64 = 0

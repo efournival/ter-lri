@@ -4,16 +4,16 @@ import (
 	"encoding/binary"
 	"net"
 
-	kcp "github.com/xtaci/kcp-go"
+	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
 type Worker struct {
 	connection net.Conn
-	taskStream chan Task
+	taskStream chan nm.MonoidStorage
 }
 
-func NewWorker(address string, ts chan Task) (*Worker, error) {
-	conn, err := kcp.Dial(address)
+func NewWorker(address string, ts chan nm.MonoidStorage) (*Worker, error) {
+	conn, err := net.Dial("tcp", address)
 
 	if err != nil {
 		return nil, err
