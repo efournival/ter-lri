@@ -1,46 +1,44 @@
 package main
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"math/rand"
+	"net"
 	"time"
 
 	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
-// When this number of tasks is reached, adding a task will be blocking
-const MAX_TASKS = 15
+const (
+	// Max genus to compute
+	MAX_GENUS = 35
 
-type (
-	Parameter struct {
-		Min, Max, Value int
-	}
+	// Inverse depth from which Cilk will be used
+	CILK_BOUND = 14
 
-	Danser struct {
-		workerFunc func(nm.GoMonoid) nm.MonoidResults
-		masterFunc func(chan bool)
-		parameters map[string]Parameter
-		tasks      chan nm.MonoidStorage
-		workers    []*Worker
-		server     *Server
-	}
+	// When this number of tasks is reached, adding a task will be blocking
+	MAX_TASKS = 1000
 )
+
+type Danser struct {
+	workers  []*Worker
+	server   *Server
+	result   nm.MonoidResults
+	tasks    chan nm.MonoidStorage
+	results  chan nm.MonoidResults
+	syncc    chan net.Conn
+	finished chan bool
+}
 
 func NewDanser() (d *Danser) {
 	d = &Danser{}
-	d.parameters = make(map[string]Parameter)
+
 	d.tasks = make(chan nm.MonoidStorage, MAX_TASKS)
-
-	d.workerFunc = func(gm nm.GoMonoid) nm.MonoidResults {
-		panic("Worker function is not defined")
-		return nm.MonoidResults{}
-	}
-
-	d.masterFunc = func(cb chan bool) {
-		panic("Master function is not defined")
-	}
+	d.results = make(chan nm.MonoidResults, MAX_TASKS)
+	d.syncc = make(chan net.Conn, 1)
+	d.finished = make(chan bool, 1)
 
 	// Fail silently if the file does not exist
 	d.LoadConfig("config.json")
@@ -66,10 +64,10 @@ func (d *Danser) LoadConfig(filename string) error {
 		return err
 	}
 
-	d.server = NewServer(":"+config.port, d.tasks)
+	d.server = NewServer(":"+config.port, d.tasks, d.syncc)
 
 	for _, address := range config.addresses {
-		worker, err := NewWorker(address, d.tasks)
+		worker, err := NewWorker(address, d.tasks, d.results)
 
 		if err != nil {
 			return err
@@ -83,28 +81,7 @@ func (d *Danser) LoadConfig(filename string) error {
 	return nil
 }
 
-func (d *Danser) RegisterParameter(name string, min, max, value int) {
-	d.parameters[name] = Parameter{min, max, value}
-}
-
-func (d *Danser) Parameter(name string) int {
-	return d.parameters[name].Value
-}
-
-func (d *Danser) WorkerFunc(wf func(nm.GoMonoid) nm.MonoidResults) {
-	d.workerFunc = wf
-}
-
-func (d *Danser) MasterFunc(mf func()) {
-	d.masterFunc = func(finished chan bool) {
-		mf()
-		finished <- true
-	}
-}
-
 func (d *Danser) Danse(isMaster bool) {
-	finishedMaster := make(chan bool, 1)
-
 	if d.server == nil {
 		panic("DANSE configuration has not been loaded")
 	}
@@ -115,36 +92,84 @@ func (d *Danser) Danse(isMaster bool) {
 		}
 	}()
 
+	d.schedule()
+
 	if isMaster {
 		log.Println("Starting DANSE as the master process")
-		d.masterFunc(finishedMaster)
+		d.work(nm.NewMonoid())
 	} else {
 		log.Println("Starting DANSE as worker")
 	}
 
 	// Wait indefinitely if worker, or until computation is finished if master
-	if <-finishedMaster {
+	if <-d.finished {
+		log.Println(d.result)
 		log.Println("DANSE finished")
 	}
 }
 
-func (d *Danser) Work(gm nm.GoMonoid) nm.MonoidResults {
-	// TODO: schedule
-	return d.workerFunc(gm)
+func (d *Danser) work(m nm.GoMonoid) {
+	if m.Genus() < MAX_GENUS-CILK_BOUND {
+		it := m.NewIterator()
+		var nbr uint64
 
-	//return <-d.queue(gm)
+		for it.MoveNext() {
+			// TODO: m.RemoveIteratorGenerator(it)
+			d.work(m.RemoveGenerator(it.GetGen()))
+			nbr++
+		}
+
+		var res nm.MonoidResults
+		res[m.Genus()] += nbr
+		d.results <- res
+
+		it.Free()
+	} else {
+		d.results <- m.WalkChildren()
+	}
+}
+
+func sync(conn net.Conn, result nm.MonoidResults) {
+	err := binary.Write(conn, binary.BigEndian, NewSyncAnswer(result))
+
+	if err != nil {
+		log.Println("Binary write to", conn.LocalAddr(), "failed:", err.Error())
+	}
+
+	for i := 0; i < len(result); i++ {
+		result[i] = 0
+	}
 }
 
 func (d *Danser) schedule() {
 	go func() {
 		for {
-			if len(d.tasks) == 0 {
-				// TODO: parameter
-				d.workers[rand.Intn(len(d.workers))].Steal(2)
+			select {
+			case conn := <-d.syncc:
+				// Requested to sync
+				sync(conn, d.result)
+			case result := <-d.results:
+				// Reduce
+				for k, v := range result {
+					d.result[k] += v
+				}
 			}
+		}
+	}()
 
-			// TODO: parameter
-			time.Sleep(500 * time.Millisecond)
+	go func() {
+		for {
+			time.Sleep(250 * time.Millisecond)
+
+			if len(d.tasks) == 0 {
+				// No tasks, no results, we are done
+				if len(d.results) == 0 {
+					// TODO: not if worker
+					d.finished <- true
+				} /*else {
+					d.workers[rand.Intn(len(d.workers))].Steal(2)
+				}*/
+			}
 		}
 	}()
 }

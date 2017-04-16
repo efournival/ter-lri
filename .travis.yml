@@ -12,6 +12,5 @@ install:
   - sudo apt-get install -qq g++-6
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
   - CGO_CPPFLAGS='-DMAX_GENUS=35' go get "github.com/efournival/ter-lri/go-numeric-monoid"
-  - go get "github.com/xtaci/kcp-go"
 
 script: CGO_CPPFLAGS='-DMAX_GENUS=35' go test -v

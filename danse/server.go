@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/binary"
 	"log"
 	"net"
@@ -11,10 +13,11 @@ import (
 type Server struct {
 	Address    string
 	TaskStream chan nm.MonoidStorage
+	Sync       chan net.Conn
 }
 
-func NewServer(addr string, ts chan nm.MonoidStorage) (s *Server) {
-	s = &Server{addr, ts}
+func NewServer(addr string, ts chan nm.MonoidStorage, sc chan net.Conn) (s *Server) {
+	s = &Server{addr, ts, sc}
 	return
 }
 
@@ -39,15 +42,7 @@ func (s *Server) Listen() (err error) {
 	return
 }
 
-func (s *Server) onAccept(conn net.Conn) {
-	var srm StealRequestMessage
-	err := binary.Read(conn, binary.BigEndian, &srm)
-
-	if err != nil {
-		log.Println("Binary read failed:", err.Error())
-		return
-	}
-
+func (s *Server) stealRequestMessage(srm StealRequestMessage, conn net.Conn) {
 	// TODO: min value
 	if len(s.TaskStream) > 0 {
 		var tasks []nm.MonoidStorage
@@ -58,15 +53,53 @@ func (s *Server) onAccept(conn net.Conn) {
 			case t := <-s.TaskStream:
 				tasks = append(tasks, t)
 			// No task left
+			// TODO: add timer channel
 			default:
 				break
 			}
 		}
 
-		err = binary.Write(conn, binary.BigEndian, NewStealAnswer(tasks))
+		err := binary.Write(conn, binary.BigEndian, NewStealAnswer(tasks))
 
 		if err != nil {
-			log.Println("Binary write failed:", err.Error())
+			log.Println("Binary write to", conn.LocalAddr(), "failed:", err.Error())
+		}
+	}
+}
+
+func (s *Server) syncRequestMessage(srm SyncRequestMessage, conn net.Conn) {
+	s.Sync <- conn
+}
+
+func (s *Server) onAccept(conn net.Conn) {
+	reader := bufio.NewReader(conn)
+
+	for {
+		b := make([]byte, MAX_MESSAGE_SIZE)
+		n, err := reader.Read(b)
+
+		if err != nil {
+			log.Println("Reading from", conn.LocalAddr(), "failed:", err.Error())
+		} else if n > 0 {
+			mtype := MessageType(b[0])
+
+			if mtype == StealRequest {
+				var srm StealRequestMessage
+
+				if err := binary.Read(bytes.NewReader(b), binary.BigEndian, &srm); err != nil {
+					log.Println("Binary read from", conn.LocalAddr(), "failed:", err.Error())
+				} else {
+					s.stealRequestMessage(srm, conn)
+				}
+			} else if mtype == SyncRequest {
+				var srm SyncRequestMessage
+
+				if err := binary.Read(bytes.NewReader(b), binary.BigEndian, &srm); err != nil {
+					log.Println("Binary read from", conn.LocalAddr(), "failed:", err.Error())
+				} else {
+					s.syncRequestMessage(srm, conn)
+				}
+			}
 		}
 	}
 }

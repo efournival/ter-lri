@@ -7,20 +7,6 @@ import (
 	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
-var (
-	server   *Server
-	worker   *Worker
-	tasks    []nm.MonoidStorage
-	tinchan  chan nm.MonoidStorage
-	toutchan chan nm.MonoidStorage
-)
-
-const (
-	ADDR  = "localhost:12345"
-	TASKS = 3
-	MAX   = 2
-)
-
 func init() {
 	tinchan = make(chan nm.MonoidStorage, 10)
 	toutchan = make(chan nm.MonoidStorage, 10)
@@ -29,29 +15,6 @@ func init() {
 		t := nm.NewMonoid().GetBytes()
 		tinchan <- t
 		tasks = append(tasks, t)
-	}
-}
-
-func TestServerInitialization(t *testing.T) {
-	t.Log("Number of tasks in input channel is", len(tinchan))
-
-	server = NewServer(ADDR, tinchan)
-
-	go func() {
-		err := server.Listen()
-
-		if err != nil {
-			t.Fatal(err.Error())
-		}
-	}()
-}
-
-func TestWorkerInitialization(t *testing.T) {
-	var err error
-	worker, err = NewWorker(ADDR, toutchan)
-
-	if err != nil {
-		t.Fatal(err.Error())
 	}
 }
 
