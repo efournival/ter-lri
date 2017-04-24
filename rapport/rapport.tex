@@ -5,7 +5,14 @@
 \usepackage[francais]{babel}
 \addto\captionsfrench{\renewcommand{\chaptername}{Partie}}
 
-\usepackage{fontspec}
+\usepackage{ifxetex}
+
+\ifxetex
+  \usepackage{fontspec}
+\else
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\fi
 
 \usepackage{amsmath}
 \usepackage{amssymb}
