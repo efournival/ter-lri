@@ -8,10 +8,10 @@
 \usepackage{ifxetex}
 
 \ifxetex
-  \usepackage{fontspec}
+	\usepackage{fontspec}
 \else
-  \usepackage[T1]{fontenc}
-  \usepackage[utf8]{inputenc}
+	\usepackage[T1]{fontenc}
+	\usepackage[utf8]{inputenc}
 \fi
 
 \usepackage{amsmath}
@@ -64,6 +64,8 @@
 
 \renewcommand{\thechapter}{\Roman{chapter}}
 \newcommand{\gen}[1]{\left<#1\right>}
+\newcommand{\sgnode}[1]{{\bf \left<#1\right>}}
+\newcommand{\gr}[1]{{\color{gray} #1}}
 
 \usepackage{titlepic}
 
@@ -88,17 +90,9 @@
 \chapter*{Introduction}
 \addcontentsline{toc}{chapter}{Introduction}
 
-Dans le cadre du deuxième semestre du M1 Informatique de Paris-Saclay se déroulant à l'Université Paris-Sud, une unité d'enseignement de TER est proposé aux étudiants.
+Dans le cadre du deuxième semestre du M1 Informatique de Paris-Saclay se déroulant à l'Université Paris-Sud, une unité d'enseignement de TER est proposé aux étudiants. L'acronyme TER signifie Travail d'Études et de Recherche, il peut être réalisé de manière individuelle au sein d'un laboratoire de Paris-Saclay ou en groupe à travers les différents sujets proposés en début de semestre. Aucun des sujets proposés ne m'intéressait réellement. De plus, j'ai trouvé qu'un TER individuel était une bonne opportunité d'approfondir l'aspect recherche de ma formation.
 
-L'acronyme TER signifie Travail d'Études et de Recherche, il peut être réalisé de manière individuelle au sein d'un laboratoire de Paris-Saclay ou en groupe à travers les différents sujets proposés en début de semestre.
-
-Aucun des sujets proposés ne m'intéressait réellement. De plus, j'ai trouvé qu'un TER individuel était une bonne opportunité d'approfondir l'aspect recherche de ma formation.
-
-J'ai donc contacté Florent Hivert, qui était responsable du cours d'algorithmique l'année dernière en L3 MIAGE apprentissage, afin de savoir si un encadrement individuel était possible. Sa réponse fût positive et nous nous sommes rencontrés afin de discuter de la mission et des modalités.
-
-C'est comme cela que j'ai effectué mon TER au LRI au sein de l'équipe GALaC. Le sujet porte sur la distribution d'un calcul combinatoire, plus précisément l'exploration de l'arbre de semigroupes numériques.
-
-J'ai ainsi été confronté à un problème combinatoire s'inscrivant tout à fait dans le programme du M1 Informatique, notamment en continuité de la matière Algorithmique Avancée.
+J'ai donc contacté Florent Hivert, qui était responsable du cours d'algorithmique l'année dernière en L3 MIAGE apprentissage, afin de savoir si un encadrement individuel était possible. Sa réponse fût positive et nous nous sommes rencontrés afin de discuter de la mission et des modalités. C'est comme cela que j'ai effectué mon TER au LRI au sein de l'équipe GALaC. Le sujet porte sur la distribution d'un calcul combinatoire, plus précisément l'exploration de l'arbre de semigroupes numériques. J'ai ainsi été confronté à un problème combinatoire s'inscrivant tout à fait dans le programme du M1 Informatique, notamment en continuité de la matière Algorithmique Avancée.
 
 Dans ce rapport, je vais tout d'abord présenter le contexte de ce TER puis dans un deuxième temps expliquer plus en détails le problème posé et la solution existantes. J'évoquerai enfin les développements effectués pour le distribuer et les résultats obtenus.
 
@@ -118,9 +112,9 @@ Ma mission s'est déroulée dans le bâtiment 650 Ada Lovelace, qui héberge aus
 
 Plus précisément, j'ai été accueilli au sein de l'équipe GALaC (Graphes, Algorithmes et Combinatoire) à laquelle appartient mon enseignant encadrant. Dirigée par Johanne Cohen, cette équipe de recherche travaille sur des problématiques de calcul algébrique, d'algorithmique, de théorie des graphes ou encore sur la spécification théorique de systèmes en réseau.
 
-L'équipe GALaC coordonne et participe au projet européen OpenDreamKit\footnote{\url{http://opendreamkit.org/}} qui développe notamment le logiciel Sage. Il s'agit d'un ensemble de bibliothèques avec une interface en Python permettant de fournir des outils communs aux mathématiciens.
+L'équipe GALaC participe activement au développement de Sage. Il s'agit d'un ensemble de bibliothèques avec une interface en Python permettant de fournir des outils communs aux mathématiciens. Pour soutenir ce développement, Nicolas Thiéry est coordinateur du projet Horizon 2020 OpenDreamKit\footnote{\url{http://opendreamkit.org/}}.
 
-Cet effort de mutualisation des développements est commun à une dizaine d'universités européennes. Il permet de concentrer les efforts de 50 personnes réparties dans 16 sites sur la maintenance de librairies utilisées par Sage. Le budget total du projet est de 7.6 millions d'euros et une majeure partie sert à employer 11 chercheurs (en moyenne) à temps plein pour travailler uniquement sur OpenDreamKit.
+Cet effort de mutualisation des développements est commun à une dizaine d'universités européennes. Il permet de concentrer les efforts de 50 personnes réparties dans 16 sites sur la maintenance de librairies utilisées par Sage. Le budget total du projet est de 7.6 millions d'euros et sert en majeure partie à employer 11 chercheurs (en moyenne) à temps plein pour travailler sur OpenDreamKit.
 
 \section{Mission}
 Mon travail a consisté à distribuer un calcul combinatoire sur plusieurs machines. Il s'agit de compter le nombre de semigroupes numériques par exploration d'arbre jusqu'à une profondeur donnée.
@@ -129,7 +123,7 @@ Cette mission s'inscrit dans le livrable 5.6 de la proposition OpenDreamKit cadr
 
 L'algorithme mis en \oe{}uvre dans cet TER a été proposé et implémenté par Florent Hivert et Jean Fromentin, de l'Université du Littoral Côte d'Opale. Il est implémenté en \texttt{C++} et fait appel à de nombreuses techniques pour réduire le temps de calcul : vectorisation, parallélisation à l'aide de la bibliothèque \texttt{Cilk++}, dérécursivation de l'exploration, optimisations des boucles et des accès mémoire ainsi qu'un choix rigoureux des types de données.
 
-La principale limitation de cet algorithme est qu'il n'est pas possible de le distribuer facilement sur plusieurs machines. L'arbre d'exploration n'étant pas équilibré, des problèmes de charge se posent rapidement. En effet, au bout d'un certain temps, une seule machine voire un seul c\oe{}ur finit par réaliser tout le travail. L'équilibrage entre plusieurs c\oe{}urs à été mis en place très simplement et de manière performante à l'aide de la librairie Intel Cilk Plus\footnote{\url{https://www.cilkplus.org/}} qui travaille en mémoire partagée. Une solution possible à ce déséquilibrage serait la mise en place d'un système de vol de tâches, non plus limité à l'échelle du processeur, mais étendu à l'échelle d'une multitude de machines.
+La principale limite de cette implantation est qu'il n'est pas possible de le distribuer facilement sur plusieurs machines. L'arbre d'exploration n'étant pas équilibré, des problèmes de charge se posent rapidement. En effet, au bout d'un certain temps, une seule machine voire un seul c\oe{}ur finit par réaliser tout le travail. L'équilibrage entre plusieurs c\oe{}urs à été mis en place très simplement et de manière performante à l'aide de la librairie Intel Cilk Plus\footnote{\url{https://www.cilkplus.org/}} qui travaille en mémoire partagée. Une solution possible à ce déséquilibrage serait la mise en place d'un système de vol de tâches, non plus limité à l'échelle du processeur, mais étendu à l'échelle d'une multitude de machines.
 
 Le but de ce TER est donc de fournir une solution pour le calcul du nombre de semigroupes qui est performante, parallélisée et surtout distribuée. L'objectif à terme sera de lancer le calcul final sur un \emph{cluster} de machines à hautes performances.
 
@@ -142,7 +136,7 @@ Tout au long de ce TER, j'ai travaillé de manière graduelle en testant et en e
 
 J'ai noté mon avancement au fur et à mesure et un compte-rendu par période est visible en annexe \ref{anx:deroulement}.
 
-Au final, l'objectif durant ce TER était de réaliser un programme permettant de distribuer le calcul et de le lancer avant la fin de ma mission. Ayant eu beaucoup de travail le dernier mois de mon année universitaire, cela a pris du retard et j'espère pouvoir démarrer cette expérimentation avant la soutenance.
+Au final, l'objectif durant ce TER était de réaliser un programme permettant de distribuer le calcul et de le lancer avant la fin de ma mission. Ayant eu beaucoup de travail le dernier mois de mon année universitaire, cela a pris du retard. Nous avons aussi été confrontés à un bogue dans le compilateur GCC dont l'analyse et l'isolation a pris du temps. J'espère néanmoins pouvoir démarrer l'expérimentation avant la soutenance.
 
 \chapter{Problème posé}
 
@@ -153,9 +147,7 @@ Ce montant se nomme ``nombre de Frobenius'' et est plus formellement décrit par
 
 La résolution des scores au Rugby est simple, on ne peut pas avoir 1, 2 ou 4 points; tous les autres scores sont possibles. En effet, il est aisé de calculer le nombre de Frobenius (ici, 4) pour $n \leq 3$ où $n$ est le nombre d'entiers possibles pour la combinaison. Ici, $n = 3$ pour $\{3,5,7\}$.
 
-Dans notre problème, on veut calculer le nombre de semigroupes numériques (aussi appelé monoïdes) différents jusqu'à un genre maximum donné. Un semigroupe numérique est composé de générateurs, il s'agit d'un ensemble minimal de nombres qu'on ne peut pas obtenir en combinant d'autres nombres appartenant au monoïde.
-
-Ces combinaisons (au moins une addition) sont appelées décompositions, si pour un nombre du semigroupe il y a une et une seule décomposition alors ce nombre est un générateur.
+Dans notre problème, on veut calculer le nombre de semigroupes numériques (aussi appelé monoïdes) différents jusqu'à un genre maximum donné. Un semigroupe numérique est composé de générateurs, il s'agit d'un ensemble minimal de nombres qu'on ne peut pas obtenir en combinant d'autres nombres appartenant au monoïde. Ces combinaisons (au moins une addition) sont appelées décompositions, si pour un nombre du semigroupe il y a une et une seule décomposition alors ce nombre est un générateur.
 
 Le genre d'un semigroupe numérique correspond à sa profondeur dans l'arbre et aussi au nombre de ``trous''. On appelle trou un générateur qui a été enlevé.
 
@@ -163,28 +155,83 @@ Le nombre de Frobenius d'un semigroupe est la valeur du plus grand trou.
 
 Le conducteur est le nombre à partir duquel le nombre de décompositions est d'au moins 2.
 
+En retirant des nombres générateurs aux semigroupes numériques, on obtient un arbre très déséquilibré que nous voulons explorer.
+
+\begin{figure}[h]
+	\makebox[\textwidth][c]{\begin{tikzpicture}[scale=1.2,level distance=2cm, inner sep=2mm,level/.style={sibling distance=1.55cm}]
+		\node {$\sgnode{1}$}
+		child {node {$\sgnode{2,3}$}
+			child [sibling distance=4.5cm] {node {$\sgnode{3,4,5}$}
+	child {node {$\sgnode{4,5,6,7}$}
+		child [sibling distance=2cm]{node {$\sgnode{5,6,7,8,9}$}	edge from parent node [left] {4}}
+		child [sibling distance=1.9cm]{node {$\sgnode{\gr 4,6,7,9}$}	edge from parent node [left] {5}}
+		child {node {$\sgnode{\gr 4,\gr 5,7}$}	edge from parent node [right] {6}}
+		child {node {$\sgnode{\gr 4,\gr 5,\gr 6}$}	edge from parent node [right] {7}}
+		edge from parent node [left] {3}
+	}
+	child{{} edge from parent[draw=none]}
+	child{{} edge from parent[draw=none]}
+	child {node {$\sgnode{\gr 3,5,7}$}
+		child {node {$\sgnode{\gr 3,7,8}$} edge from parent node [left] {5}}
+		child {node {$\sgnode{\gr 3,\gr 5}$} edge from parent node [right] {7}}
+		edge from parent node [left] {4}
+	}
+	child {node {$\sgnode{\gr 3,\gr 4}$}
+		edge from parent node [right] {5}
+	}
+	edge from parent node [left] {2}
+			}
+			child [sibling distance=4.5cm] {node {$\sgnode{\gr2,5}$}
+	child {node {$\sgnode{\gr2,7}$}
+		child {node {$\sgnode{\gr2,9}$}
+			edge from parent node [right] {7}
+		}
+		edge from parent node [right] {5}
+	}
+	edge from parent node [right] {3}
+			}
+			edge from parent node [left] {1}
+		}
+		;
+	\end{tikzpicture}}
+	\caption{Les 4 premiers étages de l'arbre des semigroupes numériques (les générateurs retirés sont spécifiés sur les arêtes), selon Florent Hivert et Jean Fromentin \cite{exploring-ns}}
+\end{figure}
+
 \section{Un exemple}
 Prenons un semigroupe numérique quelconque noté $S_X$ où $X$ est le genre :
-\[ S_2 = \{0, \mathbf{3}, \mathbf{4}, \mathbf{5}, 6, 7, 8\} \cup [9; +\infty[ \]
+\[ S_8 = \{0, \mathbf{6}, \mathbf{7}, \mathbf{10}, \mathbf{15}, 16, 17\} \cup [18; +\infty[ \]
+
 L'ensemble minimal de \textbf{nombres générateurs} a été mis en gras, on constate qu'on peut générer tous les autres nombres à partir de ceux-ci.
 
-Le \textbf{genre} est égal à 2 car il y a deux trous, c'est à dire qu'on a retiré deux nombres au semigroupe, ici 1 et 2. Si on place ce semigroupe numérique dans un arbre, il aurait une profondeur de 2 également.
+Le \textbf{genre} est égal à 8 car il y a huit trous, c'est à dire que pour 8 nombres, le nombre de décompositions est nul. Si on place ce semigroupe numérique dans un arbre, il aurait une profondeur de 8 également.
 
-La \textbf{multiplicité} est de 1, soit le plus petit nombre appartenant au semigroupe avec 0 exclu.
+Voici les 18 premiers nombres de décompositions de ce monoïde :
 
-Le \textbf{nombre de Frobenius} de ce semigroupe est égal à 5, soit le plus grand générateur.
+{\centering \vskip 0.3em
+	\begin{tabular}{|*{18}{c|}}
+		\hline
+		0 & 1 & 2 & 3 & 4 & 5 & \textbf{6} & \textbf{7} & 8 & 9 & \textbf{10} & 11 & 12 & 13 & 14 & \textbf{15} & 16 & 17 \\
+		\hline
+		1 & 0 & 0 & 0 & 0 & 0 & 1 & 1 & 0 & 0 & 1  & 0  & 2  & 2  & 2  & 1  & 2  & 2  \\
+		\hline
+	\end{tabular}
+\par \vskip 0.3em}
 
-Le \textbf{conducteur} est 6 (suivant le Frobenius), tous les nombres à partir de celui-ci peuvent être générés d'au moins deux manières :
+La \textbf{multiplicité} est de 11, soit le plus grand nombre dont le nombre de décompositions est nul.
+
+Le \textbf{nombre de Frobenius} de ce semigroupe est égal à 15, soit le plus grand générateur.
+
+Le \textbf{conducteur} est 16 (suivant le Frobenius), tous les nombres à partir de celui-ci peuvent être générés d'au moins deux manières :
 \begin{itemize}
-	\item	l'ajout de zéro au nombre, soit $0 + 6$ (ou $6 + 0$, mais on va ignorer la commutativité)
-	\item	la somme de deux nombres générateurs, ici $3 + 3$
+	\item	l'ajout de zéro au nombre, soit $0 + 16$ (ou $16 + 0$, mais on va ignorer la commutativité)
+	\item	la somme de deux nombres générateurs, ici $6 + 10$
 \end{itemize}
 
-Ce monoïde va en engendrer un autre si on retire, par exemple, 3 :
-\[ S_3 = \{ 0, \mathbf{4}, \mathbf{5}, \mathbf{6}, \mathbf{7}, 9, 10 \} \cup [11; +\infty[ \]
+Ce monoïde va en engendrer un autre si on retire, par exemple, 15 :
+\[ S_9 = \{ 0, \mathbf{6}, \mathbf{7}, \mathbf{10}, 11 \} \cup [12; +\infty[ \]
 
 Dans la suite du rapport, le semigroupe numérique présenté ci-dessus pourra être noté comme ceci :
-\[ \gen{\mathbf{4}, \mathbf{5}, \mathbf{6}, \mathbf{7}} \]
+\[ \gen{\mathbf{6}, \mathbf{7}, \mathbf{10}} \]
 
 \section{Premier algorithme}
 Décrit par Maria Bras-Amorós en 2005 \cite{ba2005}, cet algorithme \emph{Breadth-First Search} permet de déterminer les générateurs d'un semigroupe numérique.
@@ -192,25 +239,27 @@ Décrit par Maria Bras-Amorós en 2005 \cite{ba2005}, cet algorithme \emph{Bread
 Il utilise une structure de données comportant un tableau de $3 \cdot G - 1$ cases (avec $G$ le genre maximum à calculer) de booléens indiquant pour chaque nombre si il possède ou non au moins une décomposition. Étant donné un générateur à retirer, l'algorithme va calculer toutes les combinaisons possibles en effectuant un ET logique entre deux cases du tableau.
 
 \begin{figure}[h]
-  \begin{algorithmic}
-    \FOR {$g \text{ de dernierEnlevé + 1 à } B$}
-      \IF{$T[g]$}
-	\FOR {$i \text{ de } 1 \text{ à } \lfloor \frac{g}{2} \rfloor$}
-	  \IF{$T[i] \land T[g-i]$}
-	    \STATE $g$ est un nombre de décomposition
-	  \ENDIF
-	\ENDFOR
-      \ENDIF
-    \ENDFOR
-  \end{algorithmic}
-  \caption{Approche naïve pour déterminer les nombres de décomposition d'un semigroupe numérique}
-  \label{fig:nalg}
+	\begin{algorithmic}
+		\FOR {$g \text{ de dernierEnlevé + 1 à } B$}
+			\IF{$T[g]$}
+				\FOR {$i \text{ de } 1 \text{ à } \lfloor \frac{g}{2} \rfloor$}
+					\IF{$T[i] \land T[g-i]$}
+						\STATE $g$ est une décomposition
+					\ENDIF
+				\ENDFOR
+			\ENDIF
+		\ENDFOR
+	\end{algorithmic}
+	\caption{Approche naïve pour déterminer les nombres de décomposition d'un semigroupe numérique}
+	\label{fig:nalg}
 \end{figure}
 
-L'approche de Maria Bras-Amorós se base donc sur l'algorithme donné en figure \ref{fig:nalg}. Implémenté en Go dans le cadre de ce TER, il nécessite une modification car seuls les nombres générateurs nous intéressent. On va donc considérer uniquement les nombres partant du générateur que l'on vient d'enlever jusqu'à $3 \cdot G - 1$. Partant du principe qu'un nombre $n$ appartenant au semigroupe numérique est un générateur, il sera noté comme tel uniquement si l'algorithme donné ci-dessus ne détermine pas que $n$ est un nombre de décomposition.
+L'approche de Maria Bras-Amorós se base donc sur l'algorithme donné en figure \ref{fig:nalg}. Cette méthode possède une complexité de $O(g^2)$ car la borne $B$ est égale à $3 \cdot G - 1$. Implémenté en Go dans le cadre de ce TER, il nécessite une modification car seuls les nombres générateurs nous intéressent. On va donc considérer uniquement les nombres partant du générateur que l'on vient d'enlever jusqu'à $3 \cdot G - 1$. Partant du principe qu'un nombre $n$ appartenant au semigroupe numérique est un générateur, il sera noté comme tel uniquement si l'algorithme donné ci-dessus ne détermine pas que $n$ est un nombre de décompositions.
 
 \section{Algorithme optimisé}
-L'algorithme dit optimisé a été proposé et implémenté par Jean Fromentin et Florent Hivert \cite{exploring-ns} avec l'objectif de calculer le monoïde engendré par la suppression d'un nombre générateur. Il réalise cette tâche de manière très rapide en utilisant les fonctionnalités SIMD du processeur. Le parcours de l'arbre a été mis en place sous la forme d'un algorithme \emph{Depth-First Search} soit un parcours en profondeur, à la différence de l'algorithme vu précédemment qui est un parcours en largeur. Il est donc bien plus optimal car il n'est plus nécessaire de stocker tous les monoïdes de genre $g$ avant de parcourir ceux de $g + 1$.
+L'algorithme dit optimisé a été proposé et implémenté par Jean Fromentin et Florent Hivert \cite{exploring-ns} avec l'objectif de calculer le monoïde engendré par la suppression d'un nombre générateur. Le parcours de l'arbre a été mis en place sous la forme d'un algorithme \emph{Depth-First Search} soit un parcours en profondeur, à la différence de l'algorithme vu précédemment qui est un parcours en largeur. Il est donc bien plus optimal car il n'est plus nécessaire de stocker tous les monoïdes de genre $g$ avant de parcourir ceux de $g + 1$.
+
+Par rapport à l'algorithme précédent, la complexité est linéaire et est équivalente ) $O(g)$. La partie constante est réduite par rapport à l'approche de Maria Bras-Amorós grâce à l'utilisation des instructions SIMD.
 
 La structure de données mise en place ici comporte :
 \begin{itemize}
@@ -231,7 +280,7 @@ Nous avons vu dans la partie précédente qu'un algorithme optimisé avait été
 L'architecture existante est présentée en figure \ref{fig:archi}. Jusqu'à une certaine profondeur, on va effectuer un parcours de type DFS en comptant le nombre d'appels récursifs lancés, cela est réalisé par la fonction \texttt{walk\_children()} du code original de \texttt{NumericMonoid}. Ensuite, à partir d'une profondeur définie par la constante \texttt{STACK\_BOUND}, une méthode utilisant fortement des optimisations bas niveau et d'autres astuces de programmation comme un \emph{Duff's device}\footnote{Un \emph{Duff's device} est une manière de dérouler une boucle à l'aide d'une structure \texttt{switch} afin de s'affranchir des délais induits par le branchement conditionnel. Cela est nécessaire car GCC avec toutes les optimisations activées (\texttt{-O3}) ne déroule pas la boucle de la bonne façon. Plus d'infos sur \url{https://en.wikipedia.org/wiki/Duff's_device}} est impliquée. Celle-ci va compter le nombre de semigroupes numériques à l'aide d'itérateurs sur les nombres générateurs des monoïdes. Elle s'exécutera jusqu'à atteindre la profondeur \texttt{MAX\_GENUS} qui est le genre maximal des semigroupes numériques à compter.
 
 \begin{figure}[h]
-	\centering
+	\makebox[\textwidth][c]{
 	\begin{tikzpicture}[scale=0.85,level distance=12mm, level 2/.style={sibling distance=30mm}, level 3/.style={sibling distance=20mm}]
 		\node {$\gen{\mathbf{1}}$} [grow=up]
 			child {node {$\gen{\mathbf{2},\mathbf{3}}$}
@@ -268,6 +317,7 @@ L'architecture existante est présentée en figure \ref{fig:archi}. Jusqu'à une
 		\draw (5.75,2.75) node [anchor=west,align=left] {\footnotesize Profondeur : \texttt{MAX\_GENUS - STACK\_BOUND}};
 		\draw (5.75,0) node [anchor=west,align=left] {\footnotesize Profondeur : 0};
 	\end{tikzpicture}
+	}
 	\caption{Exploration parallélisée de l'arbre par \texttt{NumericMonoid}}
 	\label{fig:archi}
 \end{figure}
@@ -276,17 +326,17 @@ Cette dernière fonction prend quelques secondes à s'exécuter mais ne fait tra
 
 Un problème se pose cependant : il est très difficile de paralléliser cette exploration car l'arbre est fortement déséquilibré. Afin de pouvoir calculer efficacement, la librairie Intel Cilk a été utilisée. Celle-ci repose sur le vol de tâches ainsi que sur des algorithmes de synchronisation très performants \cite{cilk} fonctionnant en mémoire partagée.
 
-Le vol de tâche décrit par Blumofe et Leiserson \cite{work-stealing} est une technique permettant à un processus (dans notre cas, un \emph{thread} géré par Cilk) de voler du travail à un autre lorsqu'il n'a plus rien à faire. Dans notre cas, elle permet d'exploiter 100\% du processeur en ordonnançant automatiquement les tâches à réaliser. En effet, pour une profondeur $p$ quelconque de l'arbre, il a été démontré que seulement 1\% des n\oe{}uds contenaient 99\% des n\oe{}uds à la profondeur $p + 10$.
+Le vol de tâche décrit par Blumofe et Leiserson \cite{work-stealing} est une technique permettant à un processus (dans notre cas, un \emph{thread} géré par Cilk) de voler du travail à un autre lorsqu'il n'a plus rien à faire. Dans notre cas, elle permet d'exploiter 100\% du processeur en ordonnançant automatiquement les tâches à réaliser. En effet, pour une profondeur $p$ quelconque de l'arbre, il a été mesuré expérimentalement que seulement 1\% des n\oe{}uds contenaient 99\% des n\oe{}uds à la profondeur $p + 10$.
 
 \chapter{Résolution et développements}
 
 \section{Technologies utilisées}
 Ce TER avait pour objectif initial d'implémenter l'exploration d'arbres de semigroupes numériques en Python afin d'utiliser les algorithmes de MapReduce et de vol de tâches mis en place dans Sage \cite{fh-hpc}. Cependant, j'ai proposé de le développer plutôt en Go, un langage qui me tient à c\oe{}ur et qui est, à mon avis, plein d'avenir. De plus, il est parfaitement indiqué à notre problématique car :
 \begin{itemize}
-  \item	on peut appeler facilement du code C;
-  \item	la partie réseau de la librairie standard est de très bonne qualité;
-  \item	les fonctionnalités de parallélisation et d'asynchronisme du langage sont basées sur l'algèbre de processus \emph{Communicating sequential processes} décrit par C. A. R. Hoare \cite{csp} et facilitent notamment l'implémentation du vol de tâches;
-  \item	il est compilé et performant, le code machine généré est ainsi presque aussi rapide que celui généré par GCC.
+	\item on peut appeler facilement du code C;
+	\item la partie réseau de la librairie standard est de très bonne qualité;
+	\item les fonctionnalités de parallélisation et d'asynchronisme du langage sont basées sur l'algèbre de processus \emph{Communicating sequential processes} décrit par C. A. R. Hoare \cite{csp} et facilitent notamment l'implémentation du vol de tâches;
+	\item il est compilé et performant, le code machine généré est ainsi presque aussi rapide que celui généré par GCC.
 \end{itemize}
 
 Pour la transmission des informations, j'ai choisi d'utiliser le protocole TCP/IP qui, grâce à sa fiabilité et sa gestion de l'ordre des messages, est adapté aux calculs intensifs qui nécessitent une certaine sûreté. Cependant, il repose sur le compromis suivant : les communications ne comporteront pas d'erreurs mais sont susceptibles d'être incomplètes. Il faudra donc rajouter une couche supplémentaire à ce protocole afin de ne pas perdre de messages et donc fausser complètement le calcul.
@@ -366,6 +416,8 @@ Cependant, cela n'enlève rien au fait que ce TER a été très réussi en terme
 
 Les différentes personnes que j'ai rencontré au LRI étaient toutes sympathiques et passionnée. J'ai apprécié cet aperçu de la partie recherche du métier d'enseignant-chercheur qui sévit à la faculté de sciences. Je remercie Florent Hivert pour avoir accepté de m'encadrer durant ce TER.
 
+Je pense que le Travail d'Étude et de Recherche est un très bon moyen de faire découvrir le monde de la recherche aux étudiants tout en les impliquant sur un sujet qui les intéresse. Étant donné le travail que cela représente, un plus gros coefficient et peut-être plus de présence au laboratoire auraient été de vrais plus à la formation.
+
 \printbibliography
 \addcontentsline{toc}{chapter}{Bibliographie}
 
@@ -389,8 +441,8 @@ Installation au LRI, explications :
 				\FOR {$g \text{ de dernierEnlevé + 1 à } B$}
 					\IF{$T[g]$}
 						\FOR {$i \text{ de } 1 \text{ à } \lfloor \frac{g}{2} \rfloor$}
-							\IF{$T[i]$ et $T[g-i]$}
-								\STATE $g$ est un nombre de décomposition
+							\IF{$T[i] \land T[g-i]$}
+								\STATE $g$ est une décomposition
 							\ENDIF
 						\ENDFOR
 					\ENDIF
@@ -518,7 +570,7 @@ Installation au LRI, explications :
 
 \subsection*{Autonomie}
 \begin{itemize}
-	\item	dévellopement du programme de distribution final (DANSE)
+	\item	développement du programme de distribution final (DANSE)
 	\item	mise en place sur la machine du centre de calcul de l'université \texttt{gocilk}
 \end{itemize}
 
