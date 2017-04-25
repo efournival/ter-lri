@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>reveal.js</title>
+
+	<link rel="stylesheet" href="css/reveal.css">
+	<link rel="stylesheet" href="css/theme/white.css">
+
+	<!-- Theme used for syntax highlighting of code -->
+	<link rel="stylesheet" href="lib/css/zenburn.css">
+
+	<style>
+		.reveal section img {
+			border: 0;
+			box-shadow: none;
+		}
+		
+		section#intro img {
+			height: 3.5em;
+			width: auto;
+		}
+	</style>
+
+	<!-- Printing and PDF exports -->
+	<script>
+		var link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+		document.getElementsByTagName('head')[0].appendChild(link);
+	</script>
+</head>
+
+<body>
+	<div class="reveal">
+		<div class="slides">
+
+			<section id="intro">
+				<h3>TER individuel</h3>
+				<h2>Distribution d'un calcul combinatoire</h2>
+				<h3>Edgar Fournival</h3>
+				<img src="assets/logo-upsud.jpg" />
+				<img src="assets/logo-lri.jpg" />
+			</section>
+
+		</div>
+	</div>
+
+	<script src="lib/js/head.min.js"></script>
+	<script src="js/reveal.js"></script>
+
+	<script>
+		// More info https://github.com/hakimel/reveal.js#configuration
+		Reveal.initialize({
+			controls: false,
+			progress: false,
+			history: true,
+
+			// More info https://github.com/hakimel/reveal.js#dependencies
+			dependencies: [{
+					src: 'plugin/markdown/marked.js'
+				},
+				{
+					src: 'plugin/markdown/markdown.js'
+				},
+				{
+					src: 'plugin/notes/notes.js',
+					async: true
+				},
+				{
+					src: 'plugin/highlight/highlight.js',
+					async: true,
+					callback: function() {
+						hljs.initHighlightingOnLoad();
+					}
+				}
+			]
+		});
+
+		window.addEventListener("mousedown", handleClick, false);
+		window.addEventListener("contextmenu", function(e) {
+			e.preventDefault();
+		}, false);
+
+		function handleClick(e) {
+			e.preventDefault();
+			if (e.button === 0) Reveal.next();
+			if (e.button === 2) Reveal.prev();
+		}
+	</script>
+</body>
+
+</html>
