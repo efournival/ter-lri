@@ -20,7 +20,7 @@ type (
 
 	// Raw array size because of:
 	// https://github.com/golang/go/issues/19816
-	MonoidStorage [144]byte
+	MonoidStorage [160]byte
 
 	GoMonoid struct {
 		m C.Monoid
