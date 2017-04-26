@@ -52,6 +52,11 @@ unsigned int Genus(Monoid nm)
     return ((monoid*)nm)->genus;
 }
 
+void Free(Monoid nm)
+{
+    delete (monoid*)nm;
+}
+
 void Print(Monoid nm)
 {
     print_monoid(*(monoid*)nm);

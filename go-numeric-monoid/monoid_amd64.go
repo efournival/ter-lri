@@ -9,7 +9,6 @@ package nm
 import "C"
 
 import (
-	"runtime"
 	"unsafe"
 
 	"github.com/intel-go/cpuid"
@@ -23,7 +22,8 @@ type (
 	MonoidStorage [160]byte
 
 	GoMonoid struct {
-		m C.Monoid
+		m            C.Monoid
+		noNeedToFree bool
 	}
 )
 
@@ -48,18 +48,21 @@ func init() {
 func NewMonoid() GoMonoid {
 	var gm GoMonoid
 	gm.m = C.InitFullN()
-
-	runtime.SetFinalizer(&gm, func(m *GoMonoid) {
-		C.free(unsafe.Pointer(gm.m))
-	})
-
+	gm.noNeedToFree = false
 	return gm
 }
 
 func FromBytes(ms MonoidStorage) GoMonoid {
 	var gm GoMonoid
 	gm.m = C.Monoid(&ms[0])
+	gm.noNeedToFree = true
 	return gm
+}
+
+func (gm GoMonoid) Free() {
+	if !gm.noNeedToFree {
+		C.Free(gm.m)
+	}
 }
 
 func (gm GoMonoid) WalkChildren() MonoidResults {
