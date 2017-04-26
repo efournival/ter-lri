@@ -80,6 +80,10 @@ func (gm GoMonoid) Genus() uint64 {
 }
 
 func (gm GoMonoid) GetBytes() (ms MonoidStorage) {
-	copy((*MonoidStorage)(unsafe.Pointer(gm.m))[0:C.SIZEOF_MONOID], ms[:])
+	copy(ms[:], (*MonoidStorage)(unsafe.Pointer(gm.m))[0:C.SIZEOF_MONOID])
 	return
+}
+
+func (gm GoMonoid) Print() {
+	C.Print(gm.m)
 }

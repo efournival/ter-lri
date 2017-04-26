@@ -52,6 +52,11 @@ unsigned int Genus(Monoid nm)
     return ((monoid*)nm)->genus;
 }
 
+void Print(Monoid nm)
+{
+    print_monoid(*(monoid*)nm);
+}
+
 GeneratorIterator NewGeneratorIterator(Monoid nm)
 {
     return (void*)new generator_iter<CHILDREN>(*(monoid*)nm);

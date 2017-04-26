@@ -1,6 +1,9 @@
 package nm
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 var first16results = []uint64{1, 2, 4, 7, 12, 23, 39, 67, 118, 204, 343, 592, 1001, 1693, 2857, 4806}
 
@@ -51,9 +54,18 @@ func TestGetBytes(t *testing.T) {
 
 func TestBytesCopy(t *testing.T) {
 	nm1 := NewMonoid()
+	fmt.Println("Dump of root monoid:")
+	nm1.Print()
+
 	bytes1 := nm1.GetBytes()
+	fmt.Println("Dump of root monoid bytes:")
+	fmt.Printf("%+v\n", bytes1)
+
 	nm2 := FromBytes(bytes1)
 	bytes2 := nm2.GetBytes()
+
+	fmt.Println("Dump of root monoid (after copy):")
+	nm2.Print()
 
 	for i, b := range bytes1 {
 		if b != bytes2[i] {

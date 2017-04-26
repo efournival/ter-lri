@@ -16,6 +16,7 @@ Monoid InitFullN();
 Monoid RemoveGenerator(Monoid, uint_fast64_t);
 void WalkChildrenStack(Monoid, unsigned long int*);
 unsigned int Genus(Monoid);
+void Print(Monoid);
 
 typedef void* GeneratorIterator;
 GeneratorIterator NewGeneratorIterator(Monoid);
