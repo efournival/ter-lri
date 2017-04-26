@@ -15,17 +15,14 @@ Tuteur : [Florent Hivert](https://www.lri.fr/~hivert/)
 - [x] Profiler le code Go avec `perf` et `pprof`
 - [x] Utilisation de `cgo` avec appel au code de `NumericMonoid` généré par GCC
 - [x] Traduction de la boucle principale en Go natif utilisant les Goroutines à la place de Cilk du code original
-- [ ] Implémentation d'un système de type fork-join distribué
-- [ ] Mise en place du vol de tâche au sein du modèle fork-join
-- [ ] Utilisation d'un algorithme de machine learning pour trouver les meilleurs paramètres durant l'exécution des calculs
-- [ ] Mise en place du cluster : image, SSH/DSH, etc.
+- [x] Implémentation d'un système de type fork-join distribué
+- [x] Mise en place du vol de tâche au sein du modèle fork-join
 - [ ] Finalisation et lancement des calculs
-- [ ] Terminer d'écrire le rapport et préparer la soutenance
 
 ## Problèmes complémentaires
 
 * Distribution du problème des N reines
-* [Mise en place du vol de tâche](https://github.com/Didayolo/spark) dans [Spark](http://spark.apache.org/)
+* [Un problème similaire](https://github.com/Didayolo/spark) avec [Spark](http://spark.apache.org/)
 * Utiliser des instructions AVX1 voire AVX2
 * Test du compilateur Intel et de LLVM/Clang
 * [Bug Cilk dans GCC](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80038)
