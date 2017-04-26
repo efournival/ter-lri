@@ -8,6 +8,8 @@ import (
 	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
+var danser *Danser
+
 func init() {
 	syncchan = make(chan net.Conn, 1)
 	reschan = make(chan nm.MonoidResults, MAX_TASKS)

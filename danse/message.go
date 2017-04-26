@@ -31,8 +31,8 @@ type (
 )
 
 const (
-	MAX_TASKS_IN_MESSAGE = 10
-	MAX_MESSAGE_SIZE     = 5000
+	MAX_TASKS_IN_MESSAGE = 50
+	MAX_MESSAGE_SIZE     = 100000
 
 	StealRequest MessageType = iota
 	StealAnswer

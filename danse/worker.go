@@ -6,27 +6,47 @@ import (
 	"encoding/binary"
 	"log"
 	"net"
+	"time"
 
 	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
 type Worker struct {
 	connection net.Conn
-	taskStream chan nm.MonoidStorage
+	address    string
+	taskStream chan nm.GoMonoid
 	results    chan nm.MonoidResults
+	lastSync   time.Time
 }
 
-func NewWorker(address string, ts chan nm.MonoidStorage, r chan nm.MonoidResults) (*Worker, error) {
-	conn, err := net.Dial("tcp", address)
+func NewWorker(address string, ts chan nm.GoMonoid, r chan nm.MonoidResults) *Worker {
+	w := &Worker{nil, address, ts, r, time.Now()}
+
+	go func() {
+		for {
+			if err := w.Connect(); err == nil {
+				log.Println("Successfully connected to", address)
+				return
+			}
+
+			time.Sleep(250 * time.Millisecond)
+		}
+	}()
+
+	return w
+}
+
+func (w *Worker) Connect() error {
+	conn, err := net.Dial("tcp", w.address)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	w := &Worker{conn, ts, r}
+	w.connection = conn
 	go w.waitForAnswers()
 
-	return w, err
+	return nil
 }
 
 func (w *Worker) Steal(max int32) error {
@@ -38,12 +58,17 @@ func (w *Worker) Sync() error {
 }
 
 func (w *Worker) stealAnswerMessage(sam StealAnswerMessage) {
+	w.lastSync = time.Now()
+
+	log.Println("Stole", sam.Count, "tasks")
+
 	for i := 0; i < int(sam.Count); i++ {
-		w.taskStream <- sam.Tasks[i]
+		w.taskStream <- nm.FromBytes(sam.Tasks[i])
 	}
 }
 
 func (w *Worker) syncAnswerMessage(sam SyncAnswerMessage) {
+	log.Println("Received sync from", w.connection.RemoteAddr())
 	w.results <- sam.Result
 }
 
@@ -55,7 +80,7 @@ func (w *Worker) waitForAnswers() {
 		n, err := reader.Read(b)
 
 		if err != nil {
-			log.Println("Reading from", w.connection.LocalAddr(), "failed:", err.Error())
+			log.Panicln("WORKER Reading from", w.connection.LocalAddr(), "failed:", err.Error())
 		} else if n > 0 {
 			mtype := MessageType(b[0])
 
@@ -63,7 +88,7 @@ func (w *Worker) waitForAnswers() {
 				var sam StealAnswerMessage
 
 				if err := binary.Read(bytes.NewReader(b), binary.BigEndian, &sam); err != nil {
-					log.Println("Binary read (StealAnswer) from", w.connection.LocalAddr(), "failed:", err.Error())
+					log.Panicln("WORKER Binary read (StealAnswer) from", w.connection.LocalAddr(), "failed:", err.Error())
 				} else {
 					w.stealAnswerMessage(sam)
 				}
@@ -71,7 +96,7 @@ func (w *Worker) waitForAnswers() {
 				var sam SyncAnswerMessage
 
 				if err := binary.Read(bytes.NewReader(b), binary.BigEndian, &sam); err != nil {
-					log.Println("Binary read (SyncAnswer) from", w.connection.LocalAddr(), "failed:", err.Error())
+					log.Panicln("WORKER Binary read (SyncAnswer) from", w.connection.LocalAddr(), "failed:", err.Error())
 				} else {
 					w.syncAnswerMessage(sam)
 				}

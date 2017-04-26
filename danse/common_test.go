@@ -10,9 +10,9 @@ import (
 var (
 	server   *Server
 	worker   *Worker
-	tasks    []nm.MonoidStorage
-	tinchan  chan nm.MonoidStorage
-	toutchan chan nm.MonoidStorage
+	tasks    []nm.GoMonoid
+	tinchan  chan nm.GoMonoid
+	toutchan chan nm.GoMonoid
 	syncchan chan net.Conn
 	reschan  chan nm.MonoidResults
 )
@@ -23,9 +23,7 @@ const (
 	MAX   = 2
 )
 
-func TestServerInitialization(t *testing.T) {
-	t.Log("Number of tasks in input channel is", len(tinchan))
-
+func TestNetworkInitialization(t *testing.T) {
 	server = NewServer(ADDR, tinchan, syncchan)
 
 	go func() {
@@ -35,13 +33,6 @@ func TestServerInitialization(t *testing.T) {
 			t.Fatal(err.Error())
 		}
 	}()
-}
 
-func TestWorkerInitialization(t *testing.T) {
-	var err error
-	worker, err = NewWorker(ADDR, toutchan, reschan)
-
-	if err != nil {
-		t.Fatal(err.Error())
-	}
+	worker = NewWorker(ADDR, toutchan, reschan)
 }
