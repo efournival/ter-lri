@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/binary"
 	"encoding/json"
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"net"
 	"time"
 
 	"github.com/efournival/ter-lri/go-numeric-monoid"
@@ -17,7 +15,7 @@ const (
 	MAX_GENUS = 42
 
 	// Inverse depth from which Cilk will be used
-	CILK_BOUND = 20
+	CILK_BOUND = 30
 
 	// When this number of tasks is reached, adding a task will be blocking
 	MAX_TASKS = 10000000
@@ -31,7 +29,7 @@ type Danser struct {
 	result   nm.MonoidResults
 	tasks    chan nm.GoMonoid
 	results  chan nm.MonoidResults
-	syncc    chan net.Conn
+	syncc    chan chan nm.MonoidResults
 	finished chan bool
 }
 
@@ -42,7 +40,7 @@ func NewDanser(master bool) (d *Danser) {
 	d.ready = false
 	d.tasks = make(chan nm.GoMonoid, MAX_TASKS)
 	d.results = make(chan nm.MonoidResults, MAX_TASKS)
-	d.syncc = make(chan net.Conn, 1)
+	d.syncc = make(chan chan nm.MonoidResults, 1)
 	d.finished = make(chan bool, 1)
 
 	// Fail silently if the file does not exist
@@ -93,7 +91,7 @@ func (d *Danser) waitForWorkers() {
 		ok := true
 
 		for _, worker := range d.workers {
-			ok = ok && (worker.connection != nil)
+			ok = ok && (worker.RPC != nil)
 		}
 
 		if ok {
@@ -110,12 +108,6 @@ func (d *Danser) Danse() {
 	if d.server == nil {
 		panic("DANSE configuration has not been loaded")
 	}
-
-	go func() {
-		if err := d.server.Listen(); err != nil {
-			panic(err)
-		}
-	}()
 
 	go d.schedule()
 
@@ -160,14 +152,16 @@ func (d *Danser) work(m nm.GoMonoid) {
 	} else {
 		d.results <- m.WalkChildren()
 	}
+
+	m.Free()
 }
 
 func (d *Danser) schedule() {
 	go func() {
 		for {
 			select {
-			case conn := <-d.syncc:
-				sync(conn, d.result)
+			case sc := <-d.syncc:
+				sync(sc, &d.result)
 			case result := <-d.results:
 				// Reduce
 				for k, v := range result {
@@ -178,7 +172,7 @@ func (d *Danser) schedule() {
 					finished := true
 
 					for _, worker := range d.workers {
-						if time.Now().Sub(worker.lastSync) < 2*time.Second {
+						if worker.IsActive() {
 							finished = false
 							break
 						}
@@ -205,13 +199,11 @@ func (d *Danser) schedule() {
 	if d.isMaster {
 		go func() {
 			for {
-				time.Sleep(time.Second)
+				time.Sleep(2 * time.Second)
 
 				if d.ready {
-					log.Println("Asking all the workers to sync")
-
 					for _, worker := range d.workers {
-						worker.Sync()
+						go worker.Sync()
 					}
 				}
 			}
@@ -221,21 +213,20 @@ func (d *Danser) schedule() {
 	if len(d.workers) > 0 && !d.isMaster {
 		go func() {
 			for {
-				// TODO: 200 from configuration
-				time.Sleep(400 * time.Millisecond)
+				// TODO: 500 from configuration
+				time.Sleep(500 * time.Millisecond)
 
 				if d.ready && len(d.tasks) == 0 {
-					// TODO: 50 from configuration
 					w := d.workers[rand.Intn(len(d.workers))]
-					w.Steal(5)
-					log.Println("Sending steal request to", w.connection.RemoteAddr())
+					log.Println("Sending steal request to", w.Address)
+					w.Steal()
 				}
 			}
 		}()
 	}
 }
 
-func sync(conn net.Conn, result nm.MonoidResults) {
+func sync(sc chan nm.MonoidResults, result *nm.MonoidResults) {
 	empty := true
 
 	for i := 0; i < len(result); i++ {
@@ -249,13 +240,7 @@ func sync(conn net.Conn, result nm.MonoidResults) {
 		return
 	}
 
-	err := binary.Write(conn, binary.BigEndian, NewSyncAnswer(result))
-
-	if err != nil {
-		log.Panicln("WORKER Binary write to", conn.LocalAddr(), "failed:", err.Error())
-	}
-
-	log.Println("Sent sync information")
+	sc <- *result
 
 	for i := 0; i < len(result); i++ {
 		result[i] = 0

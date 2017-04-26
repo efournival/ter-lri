@@ -1,19 +1,12 @@
 package main
 
 import (
-	"net"
 	"testing"
-	"time"
 
 	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
-var danser *Danser
-
 func init() {
-	syncchan = make(chan net.Conn, 1)
-	reschan = make(chan nm.MonoidResults, MAX_TASKS)
-
 	var result nm.MonoidResults
 	for i := 0; i < MAX_GENUS; i++ {
 		result[i] = uint64(i)
@@ -22,23 +15,15 @@ func init() {
 	// Worker danser will receive this
 	go func() {
 		for {
-			sync(<-syncchan, result)
+			sync(<-syncc, &result)
 		}
 	}()
 }
 
 func TestWorkerSync(t *testing.T) {
-	err := worker.Sync()
+	worker.Sync()
 
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	time.Sleep(100 * time.Millisecond)
-
-	t.Log("Number of results in channel is", len(reschan))
-
-	r := <-reschan
+	r := <-results
 	equals := true
 
 	for i := 0; i < MAX_GENUS; i++ {

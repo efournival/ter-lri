@@ -1,31 +1,32 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/binary"
 	"log"
 	"net"
+	"net/rpc"
 	"time"
 
 	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
 type Worker struct {
-	connection net.Conn
-	address    string
-	taskStream chan nm.GoMonoid
-	results    chan nm.MonoidResults
+	RPC        *rpc.Client
+	Address    string
+	TaskStream chan nm.GoMonoid
+	Results    chan nm.MonoidResults
 	lastSync   time.Time
 }
 
 func NewWorker(address string, ts chan nm.GoMonoid, r chan nm.MonoidResults) *Worker {
 	w := &Worker{nil, address, ts, r, time.Now()}
 
+	// Loop until a connection is established
 	go func() {
 		for {
-			if err := w.Connect(); err == nil {
-				log.Println("Successfully connected to", address)
+			conn, err := net.Dial("tcp", w.Address)
+
+			if err == nil {
+				w.RPC = rpc.NewClient(conn)
 				return
 			}
 
@@ -36,71 +37,32 @@ func NewWorker(address string, ts chan nm.GoMonoid, r chan nm.MonoidResults) *Wo
 	return w
 }
 
-func (w *Worker) Connect() error {
-	conn, err := net.Dial("tcp", w.address)
+func (w *Worker) Steal() {
+	var reply StealReply
 
-	if err != nil {
-		return err
+	if err := w.RPC.Call("Danse.StealRequest", STEAL_COUNT, &reply); err != nil {
+		panic(err)
 	}
 
-	w.connection = conn
-	go w.waitForAnswers()
+	log.Println("Stole", reply.Count, "tasks")
 
-	return nil
+	for i := 0; i < reply.Count; i++ {
+		w.TaskStream <- nm.FromBytes(reply.Tasks[i])
+	}
 }
 
-func (w *Worker) Steal(max int32) error {
-	return binary.Write(w.connection, binary.BigEndian, NewStealRequest(max))
-}
+func (w *Worker) Sync() {
+	var result nm.MonoidResults
 
-func (w *Worker) Sync() error {
-	return binary.Write(w.connection, binary.BigEndian, NewSyncRequest())
-}
+	if err := w.RPC.Call("Danse.SyncRequest", true, &result); err != nil {
+		panic(err)
+	}
 
-func (w *Worker) stealAnswerMessage(sam StealAnswerMessage) {
 	w.lastSync = time.Now()
-
-	log.Println("Stole", sam.Count, "tasks")
-
-	for i := 0; i < int(sam.Count); i++ {
-		w.taskStream <- nm.FromBytes(sam.Tasks[i])
-	}
+	w.Results <- result
 }
 
-func (w *Worker) syncAnswerMessage(sam SyncAnswerMessage) {
-	log.Println("Received sync from", w.connection.RemoteAddr())
-	w.results <- sam.Result
-}
-
-func (w *Worker) waitForAnswers() {
-	reader := bufio.NewReader(w.connection)
-
-	for {
-		b := make([]byte, MAX_MESSAGE_SIZE)
-		n, err := reader.Read(b)
-
-		if err != nil {
-			log.Panicln("WORKER Reading from", w.connection.LocalAddr(), "failed:", err.Error())
-		} else if n > 0 {
-			mtype := MessageType(b[0])
-
-			if mtype == StealAnswer {
-				var sam StealAnswerMessage
-
-				if err := binary.Read(bytes.NewReader(b), binary.BigEndian, &sam); err != nil {
-					log.Panicln("WORKER Binary read (StealAnswer) from", w.connection.LocalAddr(), "failed:", err.Error())
-				} else {
-					w.stealAnswerMessage(sam)
-				}
-			} else if mtype == SyncAnswer {
-				var sam SyncAnswerMessage
-
-				if err := binary.Read(bytes.NewReader(b), binary.BigEndian, &sam); err != nil {
-					log.Panicln("WORKER Binary read (SyncAnswer) from", w.connection.LocalAddr(), "failed:", err.Error())
-				} else {
-					w.syncAnswerMessage(sam)
-				}
-			}
-		}
-	}
+func (w *Worker) IsActive() bool {
+	// If last sync is younger than 5 seconds, then we still have results to sync
+	return time.Now().Sub(w.lastSync) < 5*time.Second
 }

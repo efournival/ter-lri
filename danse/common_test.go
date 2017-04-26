@@ -1,38 +1,27 @@
 package main
 
-import (
-	"net"
-	"testing"
-
-	"github.com/efournival/ter-lri/go-numeric-monoid"
-)
+import "github.com/efournival/ter-lri/go-numeric-monoid"
 
 var (
-	server   *Server
-	worker   *Worker
-	tasks    []nm.GoMonoid
-	tinchan  chan nm.GoMonoid
-	toutchan chan nm.GoMonoid
-	syncchan chan net.Conn
-	reschan  chan nm.MonoidResults
+	server  *Server
+	worker  *Worker
+	tasks   []nm.GoMonoid
+	in, out chan nm.GoMonoid
+	syncc   chan chan nm.MonoidResults
+	results chan nm.MonoidResults
 )
 
 const (
 	ADDR  = "localhost:12345"
-	TASKS = 3
-	MAX   = 2
+	TASKS = 1000
 )
 
-func TestNetworkInitialization(t *testing.T) {
-	server = NewServer(ADDR, tinchan, syncchan)
+func init() {
+	in = make(chan nm.GoMonoid, TASKS)
+	out = make(chan nm.GoMonoid, TASKS)
+	syncc = make(chan chan nm.MonoidResults, 1)
+	results = make(chan nm.MonoidResults, MAX_TASKS)
 
-	go func() {
-		err := server.Listen()
-
-		if err != nil {
-			t.Fatal(err.Error())
-		}
-	}()
-
-	worker = NewWorker(ADDR, toutchan, reschan)
+	server = NewServer(ADDR, in, syncc)
+	worker = NewWorker(ADDR, out, results)
 }

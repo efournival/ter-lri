@@ -1,57 +1,61 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/binary"
 	"log"
 	"net"
+	"net/rpc"
 
 	"github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
-type Server struct {
-	Address    string
-	TaskStream chan nm.GoMonoid
-	Sync       chan net.Conn
-}
+const (
+	MAX_TASKS_RPC = 100
+	STEAL_COUNT   = 100
+)
 
-func NewServer(addr string, ts chan nm.GoMonoid, sc chan net.Conn) (s *Server) {
-	s = &Server{addr, ts, sc}
-	return
-}
-
-func (s *Server) Listen() (err error) {
-	var listener net.Listener
-	listener, err = net.Listen("tcp", s.Address)
-
-	if err != nil {
-		return
+type (
+	Server struct {
+		RPC        *rpc.Server
+		Address    string
+		TaskStream chan nm.GoMonoid
+		Sync       chan chan nm.MonoidResults
 	}
 
-	for {
-		conn, aerr := listener.Accept()
+	StealReply struct {
+		Count int
+		Tasks [MAX_TASKS_RPC]nm.MonoidStorage
+	}
+)
 
-		if aerr != nil {
-			log.Panicln("Listener accept failed:", aerr.Error())
-		} else {
-			go s.onAccept(conn)
+func NewServer(address string, ts chan nm.GoMonoid, sc chan chan nm.MonoidResults) *Server {
+	s := &Server{rpc.NewServer(), address, ts, sc}
+
+	if err := s.RPC.RegisterName("Danse", s); err != nil {
+		log.Panicln("RPC register failed:", err)
+	}
+
+	go func() {
+		conn, err := net.Listen("tcp", s.Address)
+
+		if err != nil {
+			log.Panicln("Listener accept failed:", err)
 		}
-	}
 
-	return
+		s.RPC.Accept(conn)
+	}()
+
+	return s
 }
 
-func (s *Server) stealRequestMessage(srm StealRequestMessage, conn net.Conn) {
-	log.Println("Received steal request from", conn.RemoteAddr())
-
+func (s *Server) StealRequest(max int, reply *StealReply) error {
 	var tasks []nm.MonoidStorage
 
-	for i := 0; i < int(srm.Max); i++ {
+	for i := 0; i < max; i++ {
 		select {
 		// We can steal a task, add it to our steal answer
 		case t := <-s.TaskStream:
 			tasks = append(tasks, t.GetBytes())
+			t.Free()
 		// No task left
 		// TODO: add timer channel
 		default:
@@ -59,49 +63,16 @@ func (s *Server) stealRequestMessage(srm StealRequestMessage, conn net.Conn) {
 		}
 	}
 
-	if len(tasks) > 0 {
-		err := binary.Write(conn, binary.BigEndian, NewStealAnswer(tasks))
+	reply.Count = len(tasks)
+	copy(reply.Tasks[:], tasks)
 
-		if err != nil {
-			log.Panicln("SERVER Binary write (StealRequest) to", conn.LocalAddr(), "failed:", err.Error())
-		}
-	}
+	return nil
 }
 
-func (s *Server) syncRequestMessage(srm SyncRequestMessage, conn net.Conn) {
-	log.Println("Asked to sync from", conn.RemoteAddr())
-	s.Sync <- conn
-}
+func (s *Server) SyncRequest(useless bool, reply *nm.MonoidResults) error {
+	ch := make(chan nm.MonoidResults, 1)
+	s.Sync <- ch
+	*reply = <-ch
 
-func (s *Server) onAccept(conn net.Conn) {
-	reader := bufio.NewReader(conn)
-
-	for {
-		b := make([]byte, MAX_MESSAGE_SIZE)
-		n, err := reader.Read(b)
-
-		if err != nil {
-			log.Panicln("SERVER Reading from", conn.LocalAddr(), "failed:", err.Error())
-		} else if n > 0 {
-			mtype := MessageType(b[0])
-
-			if mtype == StealRequest {
-				var srm StealRequestMessage
-
-				if err := binary.Read(bytes.NewReader(b), binary.BigEndian, &srm); err != nil {
-					log.Panicln("SERVER Binary read (StealRequest) from", conn.LocalAddr(), "failed:", err.Error())
-				} else {
-					s.stealRequestMessage(srm, conn)
-				}
-			} else if mtype == SyncRequest {
-				var srm SyncRequestMessage
-
-				if err := binary.Read(bytes.NewReader(b), binary.BigEndian, &srm); err != nil {
-					log.Panicln("SERVER Binary read (SyncRequest) from", conn.LocalAddr(), "failed:", err.Error())
-				} else {
-					s.syncRequestMessage(srm, conn)
-				}
-			}
-		}
-	}
+	return nil
 }
