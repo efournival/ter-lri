@@ -7,20 +7,23 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/efournival/ter-lri/go-numeric-monoid"
+	nm "github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
 const (
-	// Max genus to compute
-	MAX_GENUS = 42
+	// MaxGenus defines the maximum depth of our exploration
+	MaxGenus = 42
 
-	// Inverse depth from which Cilk will be used
-	CILK_BOUND = 30
+	// CilkBound is the inverse depth from which Cilk (through bindings) will be used
+	CilkBound = 30
 
-	// When this number of tasks is reached, adding a task will be blocking
-	MAX_TASKS = 10000000
+	// MaxTasks is the size of the tasks queue, adding more tasks than that will be blocking
+	MaxTasks = 10000000
 )
 
+// Danser is the core of our experiment
+// In french, 'danse' means 'dance'
+// It also means Distributed Array of Numerical Semigroup Explorations
 type Danser struct {
 	isMaster bool
 	ready    bool
@@ -33,13 +36,14 @@ type Danser struct {
 	finished chan bool
 }
 
+// NewDanser creates a new Danser objet and try to load a default configuration (from ./config.json)
 func NewDanser(master bool) (d *Danser) {
 	d = &Danser{}
 
 	d.isMaster = master
 	d.ready = false
-	d.tasks = make(chan nm.GoMonoid, MAX_TASKS)
-	d.results = make(chan nm.MonoidResults, MAX_TASKS)
+	d.tasks = make(chan nm.GoMonoid, MaxTasks)
+	d.results = make(chan nm.MonoidResults, MaxTasks)
 	d.syncc = make(chan chan nm.MonoidResults, 1)
 	d.finished = make(chan bool, 1)
 
@@ -49,6 +53,7 @@ func NewDanser(master bool) (d *Danser) {
 	return
 }
 
+// LoadConfig loads the configuration (no shit)
 func (d *Danser) LoadConfig(filename string) error {
 	file, err := ioutil.ReadFile(filename)
 
@@ -86,24 +91,7 @@ func (d *Danser) LoadConfig(filename string) error {
 	return nil
 }
 
-func (d *Danser) waitForWorkers() {
-	for {
-		ok := true
-
-		for _, worker := range d.workers {
-			ok = ok && (worker.RPC != nil)
-		}
-
-		if ok {
-			d.ready = true
-			log.Println("All workers are ready")
-			return
-		}
-
-		time.Sleep(500 * time.Millisecond)
-	}
-}
-
+// Danse will start computation
 func (d *Danser) Danse() {
 	if d.server == nil {
 		panic("DANSE configuration has not been loaded")
@@ -113,6 +101,7 @@ func (d *Danser) Danse() {
 
 	if d.isMaster {
 		log.Println("Starting DANSE as the master process")
+		// Start exploration from the root
 		d.work(nm.NewMonoid())
 	} else {
 		log.Println("Starting DANSE as worker")
@@ -128,13 +117,41 @@ func (d *Danser) Danse() {
 
 	// Wait indefinitely if worker, or until computation is finished if master
 	if <-d.finished {
-		log.Println(d.result)
+		log.Println("Results:", d.result)
+
+		var accumulator uint64
+
+		for _, atGenus := range d.result {
+			accumulator += uint64(atGenus)
+		}
+
+		log.Println("Total:", accumulator)
+
 		log.Println("DANSE finished")
 	}
 }
 
+func (d *Danser) waitForWorkers() {
+	for {
+		ok := true
+
+		// Wait for all workers to have a RPC client object defined (Dial succeeded)
+		for _, worker := range d.workers {
+			ok = ok && (worker.RPC != nil)
+		}
+
+		if ok {
+			d.ready = true
+			log.Println("All workers are ready")
+			return
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+}
+
 func (d *Danser) work(m nm.GoMonoid) {
-	if m.Genus() < MAX_GENUS-CILK_BOUND {
+	if m.Genus() < MaxGenus-CilkBound {
 		it := m.NewIterator()
 		var nbr uint64
 
@@ -161,6 +178,8 @@ func (d *Danser) schedule() {
 		for {
 			select {
 			case sc := <-d.syncc:
+				// Asked to sync, answer if we have non-null results
+				// TODO: timeout if no result
 				sync(sc, &d.result)
 			case result := <-d.results:
 				// Reduce
@@ -191,6 +210,7 @@ func (d *Danser) schedule() {
 		for {
 			select {
 			case task := <-d.tasks:
+				// Explore as long as new tasks are coming into this channel
 				d.work(task)
 			}
 		}
@@ -203,6 +223,7 @@ func (d *Danser) schedule() {
 
 				if d.ready {
 					for _, worker := range d.workers {
+						// Sync all the workers every 2 seconds
 						go worker.Sync()
 					}
 				}
@@ -213,10 +234,10 @@ func (d *Danser) schedule() {
 	if len(d.workers) > 0 && !d.isMaster {
 		go func() {
 			for {
-				// TODO: 500 from configuration
-				time.Sleep(500 * time.Millisecond)
+				time.Sleep(250 * time.Millisecond)
 
 				if d.ready && len(d.tasks) == 0 {
+					// Pick one randomly
 					w := d.workers[rand.Intn(len(d.workers))]
 					log.Println("Sending steal request to", w.Address)
 					w.Steal()

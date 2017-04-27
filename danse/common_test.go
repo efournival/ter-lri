@@ -1,6 +1,6 @@
 package main
 
-import "github.com/efournival/ter-lri/go-numeric-monoid"
+import nm "github.com/efournival/ter-lri/go-numeric-monoid"
 
 var (
 	server  *Server
@@ -12,16 +12,16 @@ var (
 )
 
 const (
-	ADDR  = "localhost:12345"
-	TASKS = 1000
+	Address = "localhost:12345"
+	Tasks   = 1000
 )
 
 func init() {
-	in = make(chan nm.GoMonoid, TASKS)
-	out = make(chan nm.GoMonoid, TASKS)
+	in = make(chan nm.GoMonoid, Tasks)
+	out = make(chan nm.GoMonoid, Tasks)
 	syncc = make(chan chan nm.MonoidResults, 1)
-	results = make(chan nm.MonoidResults, MAX_TASKS)
+	results = make(chan nm.MonoidResults, MaxTasks)
 
-	server = NewServer(ADDR, in, syncc)
-	worker = NewWorker(ADDR, out, results)
+	server = NewServer(Address, in, syncc)
+	worker = NewWorker(Address, out, results)
 }

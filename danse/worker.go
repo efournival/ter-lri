@@ -6,9 +6,10 @@ import (
 	"net/rpc"
 	"time"
 
-	"github.com/efournival/ter-lri/go-numeric-monoid"
+	nm "github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
+// Worker is the RPC client type
 type Worker struct {
 	RPC        *rpc.Client
 	Address    string
@@ -17,6 +18,7 @@ type Worker struct {
 	lastSync   time.Time
 }
 
+// NewWorker will create a new worker and try to automatically connect it to the specified address
 func NewWorker(address string, ts chan nm.GoMonoid, r chan nm.MonoidResults) *Worker {
 	w := &Worker{nil, address, ts, r, time.Now()}
 
@@ -37,10 +39,12 @@ func NewWorker(address string, ts chan nm.GoMonoid, r chan nm.MonoidResults) *Wo
 	return w
 }
 
+// Steal has to be called when the current process is idling and we want some work
 func (w *Worker) Steal() {
 	var reply StealReply
 
-	if err := w.RPC.Call("Danse.StealRequest", STEAL_COUNT, &reply); err != nil {
+	// TODO: change MaxTasksRPC
+	if err := w.RPC.Call("Danse.StealRequest", MaxTasksRPC, &reply); err != nil {
 		panic(err)
 	}
 
@@ -51,6 +55,7 @@ func (w *Worker) Steal() {
 	}
 }
 
+// Sync is called every 2 seconds in order to retrieve results
 func (w *Worker) Sync() {
 	var result nm.MonoidResults
 
@@ -62,7 +67,7 @@ func (w *Worker) Sync() {
 	w.Results <- result
 }
 
+// IsActive returns true when the worker synced in the last 5 seconds
 func (w *Worker) IsActive() bool {
-	// If last sync is younger than 5 seconds, then we still have results to sync
 	return time.Now().Sub(w.lastSync) < 5*time.Second
 }

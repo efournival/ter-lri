@@ -3,12 +3,12 @@ package main
 import (
 	"testing"
 
-	"github.com/efournival/ter-lri/go-numeric-monoid"
+	nm "github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
 func init() {
 	var result nm.MonoidResults
-	for i := 0; i < MAX_GENUS; i++ {
+	for i := 0; i < MaxGenus; i++ {
 		result[i] = uint64(i)
 	}
 
@@ -26,7 +26,7 @@ func TestWorkerSync(t *testing.T) {
 	r := <-results
 	equals := true
 
-	for i := 0; i < MAX_GENUS; i++ {
+	for i := 0; i < MaxGenus; i++ {
 		equals = equals && r[i] == uint64(i)
 	}
 

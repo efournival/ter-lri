@@ -5,15 +5,14 @@ import (
 	"net"
 	"net/rpc"
 
-	"github.com/efournival/ter-lri/go-numeric-monoid"
+	nm "github.com/efournival/ter-lri/go-numeric-monoid"
 )
 
-const (
-	MAX_TASKS_RPC = 100
-	STEAL_COUNT   = 100
-)
+// MaxTasksRPC will set the maximum number of tasks that can be exchanged through RPC's stealing requests
+const MaxTasksRPC = 100
 
 type (
+	// Server is the RPC server type that is able to handle steal and sync requests
 	Server struct {
 		RPC        *rpc.Server
 		Address    string
@@ -21,12 +20,14 @@ type (
 		Sync       chan chan nm.MonoidResults
 	}
 
+	// StealReply are the arguments to answer a steal request
 	StealReply struct {
 		Count int
-		Tasks [MAX_TASKS_RPC]nm.MonoidStorage
+		Tasks [MaxTasksRPC]nm.MonoidStorage
 	}
 )
 
+// NewServer returns a new server automatically connected to the specified address
 func NewServer(address string, ts chan nm.GoMonoid, sc chan chan nm.MonoidResults) *Server {
 	s := &Server{rpc.NewServer(), address, ts, sc}
 
@@ -34,6 +35,7 @@ func NewServer(address string, ts chan nm.GoMonoid, sc chan chan nm.MonoidResult
 		log.Panicln("RPC register failed:", err)
 	}
 
+	// TODO: ensure this is working for multiple clients
 	go func() {
 		conn, err := net.Listen("tcp", s.Address)
 
@@ -47,6 +49,7 @@ func NewServer(address string, ts chan nm.GoMonoid, sc chan chan nm.MonoidResult
 	return s
 }
 
+// StealRequest is the RPC handler to a steal request
 func (s *Server) StealRequest(max int, reply *StealReply) error {
 	var tasks []nm.MonoidStorage
 
@@ -69,6 +72,7 @@ func (s *Server) StealRequest(max int, reply *StealReply) error {
 	return nil
 }
 
+// SyncRequest is the RPC handler to a sync request
 func (s *Server) SyncRequest(useless bool, reply *nm.MonoidResults) error {
 	ch := make(chan nm.MonoidResults, 1)
 	s.Sync <- ch
