@@ -94,13 +94,13 @@ Dans le cadre du deuxième semestre du M1 Informatique de Paris-Saclay se dérou
 
 J'ai donc contacté Florent Hivert, qui était responsable du cours d'algorithmique l'année dernière en L3 MIAGE apprentissage, afin de savoir si un encadrement individuel était possible. Sa réponse fût positive et nous nous sommes rencontrés afin de discuter de la mission et des modalités. C'est comme cela que j'ai effectué mon TER au LRI au sein de l'équipe GALaC. Le sujet porte sur la distribution d'un calcul combinatoire, plus précisément l'exploration de l'arbre de semigroupes numériques. J'ai ainsi été confronté à un problème combinatoire s'inscrivant tout à fait dans le programme du M1 Informatique, notamment en continuité de la matière Algorithmique Avancée.
 
-Dans ce rapport, je vais tout d'abord présenter le contexte de ce TER puis dans un deuxième temps expliquer plus en détails le problème posé et la solution existantes. J'évoquerai enfin les développements effectués pour le distribuer et les résultats obtenus.
+Dans ce rapport, je vais tout d'abord présenter le contexte de ce TER puis dans un deuxième temps expliquer plus en détails le problème posé et la solution existante. J'évoquerai enfin les développements effectués pour le distribuer et les résultats obtenus.
 
 \chapter{Contexte}
 
 \section{Laboratoire et équipe de recherche}
 
-J'ai réalisé ce TER au Laboratoire de Recherche en Informatique (LRI) présent sur le campus d'Orsay. Il s'agit d'une d'une unité mixte de recherche (UMR 8623) menée conjointement par l'Université Paris-Sud et le CNRS.
+J'ai réalisé ce TER au Laboratoire de Recherche en Informatique (LRI) présent sur le campus d'Orsay. Il s'agit d'une unité mixte de recherche (UMR 8623) menée conjointement par l'Université Paris-Sud et le CNRS.
 
 Ma mission s'est déroulée dans le bâtiment 650 Ada Lovelace, qui héberge aussi des enseignants chercheurs de l'Inria.
 
@@ -250,7 +250,7 @@ Il utilise une structure de données comportant un tableau de $3 \cdot G - 1$ ca
 			\ENDIF
 		\ENDFOR
 	\end{algorithmic}
-	\caption{Approche naïve pour déterminer les nombres de décomposition d'un semigroupe numérique}
+	\caption{Approche naïve pour déterminer les nombres de décompositions d'un semigroupe numérique}
 	\label{fig:nalg}
 \end{figure}
 
@@ -390,7 +390,7 @@ Le dépôt contient plusieurs dossiers :
 	\caption{Logo du programme de distribution \texttt{danse}, réalisé à partir du logo original du langage Go de Renee French}
 \end{figure}
 
-L'objectif est de lancer les calculs jusqu'au genre 70 sur des machines performantes. Ces résultats n'ont jamais été obtenus auparavant. Pour comparaison, le calcul jusqu'au genre 67 sur une machine à 32 c\oe{}urs AMD a pris 18 jours \cite{exploring-ns}.
+L'objectif est de lancer les calculs jusqu'au genre 70 sur des machines performantes. Ces résultats n'ont jamais été obtenus auparavant. Pour comparer, le calcul jusqu'au genre 67 sur une machine à 32 c\oe{}urs AMD a pris 18 jours \cite{exploring-ns}.
 
 \section{Bug GCC Cilk n°80038}
 Certaines méthodes de l'implémentation originale réalisée par Florent Hivert et Jean Fromentin font appel à du code spécifique très optimisé que seul certains compilateurs, ici GCC pour le langage C++, peuvent générer. C'est pour cela que des \emph{bindings} Go ont dû être implémentés afin de faire le lien entre le code généré par GCC et les fonctionnalités plus haut niveau (notamment côté réseau) du langage Go.
@@ -414,7 +414,7 @@ Mon encadrant, Florent Hivert, a rapidement trouvé une solution à ce problème
 
 Cependant, cela n'enlève rien au fait que ce TER a été très réussi en termes de compétences acquises et d'immersion dans le monde de la recherche. En effet, j'ai pu acquérir des connaissances dans des domaines variés comme l'optimisation, l'algorithmique, la parallélisation, etc.
 
-Les différentes personnes que j'ai rencontré au LRI étaient toutes sympathiques et passionnée. J'ai apprécié cet aperçu de la partie recherche du métier d'enseignant-chercheur qui sévit à la faculté de sciences. Je remercie Florent Hivert pour avoir accepté de m'encadrer durant ce TER.
+Les différentes personnes que j'ai rencontré au LRI étaient toutes sympathiques et passionnées. J'ai apprécié cet aperçu de la partie recherche du métier d'enseignant-chercheur qui sévit à la faculté des sciences. Je remercie Florent Hivert pour avoir accepté de m'encadrer durant ce TER.
 
 Je pense que le Travail d'Étude et de Recherche est un très bon moyen de faire découvrir le monde de la recherche aux étudiants tout en les impliquant sur un sujet qui les intéresse. Étant donné le travail que cela représente, un plus gros coefficient et peut-être plus de présence au laboratoire auraient été de vrais plus à la formation.
 
