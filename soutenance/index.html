@@ -18,9 +18,16 @@
 			border: 0;
 			box-shadow: none;
 		}
-		
+
 		section#intro img {
 			height: 3.5em;
+			width: auto;
+		}
+
+		section#techs img {
+			display: inline;
+			margin-right: 1em;
+			height: 4em;
 			width: auto;
 		}
 	</style>
@@ -47,6 +54,131 @@
 				<img src="assets/logo-lri.jpg" />
 			</section>
 
+			<section>
+				<section>
+					<h1>Partie I</h1>
+					<h2>Contexte</h2>
+				</section>
+
+				<section>
+					<h2>LRI</h2>
+					<img src="assets/lri.jpg" style="margin-top: 1em; width: 40%; height: auto; float: left;" />
+					<ul style="width: 50%; font-size: 90%;">
+						<li>Laboratoire de Recherche en Informatique</li>
+						<li>Campus d'Orsay en face de l'IUT et du PUIO</li>
+						<li>UMR impliquant l'Université Paris-Sud et le CNRS</li>
+						<li>Bâtiment 650 Ada Lovelace</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Équipe GALaC</h2>
+					<img src="assets/logo-odk.png" style="margin-top: -0.5em; width: 25%; height: auto; float: right;" />
+					<ul style="width: 60%; font-size: 80%;">
+						<li>Graphes, Algorithmique et Combinatoire</li>
+						<li>Dirigé par Johanne Cohen</li>
+						<li>Calcul algébrique, algorithmique, théorie des graphes, spécification théorique de systèmes en réseau</li>
+						<li>Projet européen Horizon 2020 : OpenDreamKit, Sage</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Mission</h2>
+					<p>Distribuer un problème combinatoire</p>
+					<div class="fragment">
+						<p>Exploration de l'arbre des semigroupes numériques</p>
+						\[ S_E=\{0,3,6,7,9,10\}\cup\{x\in\mathbb{N}, x\geqslant 12\} \]
+					</div>
+					<div class="fragment">
+						<p>Objectif : lancer le calcul à une profondeur jamais calculée auparavant</p>
+						<p>Problème : l'arbre est fortement déséquilibré</p>
+					</div>
+				</section>
+			</section>
+
+			<section>
+				<section>
+					<h1>Partie II</h1>
+					<h2>Problème posé et solution existante</h2>
+				</section>
+
+				<section>
+					\[ S_8 = \{0, \mathbf{6}, \mathbf{7}, \mathbf{10}, \mathbf{15}, 16, 17\} \cup [18; +\infty[ \]
+					<p class="fragment">Genre = 8, soit la profondeur et aux nombres de trous</p>
+					<img class="fragment" src="assets/decs.png" />
+					<div class="fragment">
+						\[ S_9 = \{ 0, \mathbf{6}, \mathbf{7}, \mathbf{10}, 11 \} \cup [12; +\infty[ \]
+						<p>noté</p>
+						\[ \left<\mathbf{6}, \mathbf{7}, \mathbf{10}\right> \]
+					</div>
+				</section>
+
+				<section>
+					<img src="assets/tree.png" style="width: 100%; height: auto;" />
+				</section>
+
+				<section>
+					<h2>Algorithme utilisé</h2>
+					<p>DFS en premier lieu par Bras-Amorós en $O(g^2)$</p>
+					<div class="fragment">
+						<p>Amélioré par Florent Hivert et Jean Fromentin</p>
+						<p>BFS, complexité $O(g)$</p>
+						<p>Petite constante car utilisation des instructions SIMD</p>
+					</div>
+					<p class="fragment">Vol de tâche pour la parallélisation</p>
+				</section>
+			</section>
+
+			<section>
+				<section>
+					<h1>Partie III</h1>
+					<h2>Distribution</h2>
+				</section>
+
+				<section>
+					<h2>Idée générale</h2>
+					<img src="assets/scheme.png" style="width: 100%; height: auto;" />
+				</section>
+
+				<section id="techs">
+					<h2>Technologies utilisées</h2>
+					<img src="assets/logo-netdata.png" />
+					<img src="assets/logo-lal.jpg" />
+					<img src="assets/logo-go.png" />
+					<img src="assets/logo-tcp.jpg" />
+					<img src="assets/logo-travis.png" />
+				</section>
+
+				<section>
+					<h2>Bug GCC n°80038</h2>
+<pre style="font-size: 49%;"><code data-trim data-noescape>
+#include &lt;vector&gt;
+#include &lt;cilk/cilk.h&gt;
+
+void walk(std::vector<int> v, unsigned size) {
+  if (v.size() < size)
+    for (int i=0; i&lt;8; i++) {
+      std::vector&lt;int&gt; vnew(v);
+      vnew.push_back(i);
+      cilk_spawn walk(vnew, size);
+    }
+}
+
+int main(int argc, char **argv) {
+  std::vector&lt;int&gt; v{};
+  walk(v, 5);
+}
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Résultats ?</h2>
+				</section>
+
+				<section>
+					<h1>Merci pour votre attention</h1>
+				</section>
+			</section>
 		</div>
 	</div>
 
@@ -60,9 +192,18 @@
 			progress: false,
 			history: true,
 
+			math: {
+				// mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+				config: 'TeX-AMS_HTML-full'
+			},
+
 			// More info https://github.com/hakimel/reveal.js#dependencies
 			dependencies: [{
 					src: 'plugin/markdown/marked.js'
+				},
+				{
+					src: 'plugin/math/math.js',
+					async: true
 				},
 				{
 					src: 'plugin/markdown/markdown.js'
