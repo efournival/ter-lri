@@ -18,12 +18,12 @@
 			border: 0;
 			box-shadow: none;
 		}
-
+		
 		section#intro img {
 			height: 3.5em;
 			width: auto;
 		}
-
+		
 		section#techs img {
 			display: inline;
 			margin-right: 1em;
@@ -75,9 +75,9 @@
 					<h2>Équipe GALaC</h2>
 					<img src="assets/logo-odk.png" style="margin-top: -0.5em; width: 25%; height: auto; float: right;" />
 					<ul style="width: 60%; font-size: 80%;">
-						<li>Graphes, Algorithmique et Combinatoire</li>
+						<li>Graphes, Algorithmes et Combinatoire</li>
 						<li>Dirigé par Johanne Cohen</li>
-						<li>Calcul algébrique, algorithmique, théorie des graphes, spécification théorique de systèmes en réseau</li>
+						<li>Calcul algébrique, études d'algorithmes, théorie des graphes, spécification théorique de systèmes en réseau</li>
 						<li>Projet européen Horizon 2020 : OpenDreamKit, Sage</li>
 					</ul>
 				</section>
@@ -103,14 +103,19 @@
 				</section>
 
 				<section>
-					\[ S_8 = \{0, \mathbf{6}, \mathbf{7}, \mathbf{10}, \mathbf{15}, 16, 17\} \cup [18; +\infty[ \]
-					<p class="fragment">Genre = 8, soit la profondeur et aux nombres de trous</p>
-					<img class="fragment" src="assets/decs.png" />
-					<div class="fragment">
-						\[ S_9 = \{ 0, \mathbf{6}, \mathbf{7}, \mathbf{10}, 11 \} \cup [12; +\infty[ \]
-						<p>noté</p>
-						\[ \left<\mathbf{6}, \mathbf{7}, \mathbf{10}\right> \]
-					</div>
+					\[ S_8 = \{0, \mathbf{6}, \mathbf{7}, \mathbf{10}, 12, 13, 14, \mathbf{15}, 16\} \cup [17; +\infty[ \]
+					<p>Ensemble d'entiers $\in \mathbb{N}$ stable par l'addition, complémentaire fini</p>
+					<p><b>Trou</b> : élément du complémentaire</p>
+					<p><b>Genre</b> : nombre de trous</p>
+					<p><b>Générateur</b> : nombre qu'on ne peut pas obtenir comme somme d'autres nombres</p>
+					<p class="fragment"><b>Problème : compter le nombre de semigroupes numériques de genre 70</b></p>
+				</section>
+
+				<section>
+					\[ S_9 = \{ 0, \mathbf{6}, \mathbf{7}, \mathbf{10}, 12, 13, 14, 16 \} \cup [17; +\infty[ \]
+					<p>noté</p>
+					\[ \left
+					<\mathbf{6}, \mathbf{7}, \mathbf{10}\right> \]
 				</section>
 
 				<section>
@@ -119,13 +124,12 @@
 
 				<section>
 					<h2>Algorithme utilisé</h2>
-					<p>DFS en premier lieu par Bras-Amorós en $O(g^2)$</p>
+					<p>DFS en premier lieu par Bras-Amorós en $O(g^2)$ pour calculer les fils à partir d'un noeud</p>
 					<div class="fragment">
 						<p>Amélioré par Florent Hivert et Jean Fromentin</p>
-						<p>BFS, complexité $O(g)$</p>
-						<p>Petite constante car utilisation des instructions SIMD</p>
+						<p>BFS, complexité $O(g)$ mais surtout petite constante car utilisation des instructions SIMD</p>
 					</div>
-					<p class="fragment">Vol de tâche pour la parallélisation</p>
+					<p class="fragment">Vol de tâches pour la parallélisation</p>
 				</section>
 			</section>
 
@@ -143,7 +147,7 @@
 				<section id="techs">
 					<h2>Technologies utilisées</h2>
 					<img src="assets/logo-netdata.png" />
-					<img src="assets/logo-lal.jpg" />
+					<img src="assets/logo-openstack.png" />
 					<img src="assets/logo-go.png" />
 					<img src="assets/logo-tcp.jpg" />
 					<img src="assets/logo-travis.png" />
@@ -151,7 +155,7 @@
 
 				<section>
 					<h2>Bug GCC n°80038</h2>
-<pre style="font-size: 49%;"><code data-trim data-noescape>
+					<pre style="font-size: 49%;"><code data-trim data-noescape>
 #include &lt;vector&gt;
 #include &lt;cilk/cilk.h&gt;
 
