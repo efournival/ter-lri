@@ -3,12 +3,13 @@ package main
 import nm "github.com/efournival/ter-lri/go-numeric-monoid"
 
 var (
-	server  *Server
-	worker  *Worker
-	tasks   []nm.GoMonoid
-	in, out chan nm.GoMonoid
-	syncc   chan chan nm.MonoidResults
-	results chan nm.MonoidResults
+	server   *Server
+	worker   *Worker
+	tasks    []nm.GoMonoid
+	in, out  chan nm.GoMonoid
+	syncc    chan chan nm.MonoidResults
+	results  chan nm.MonoidResults
+	finished chan bool
 )
 
 const (

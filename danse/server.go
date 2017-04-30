@@ -9,7 +9,7 @@ import (
 )
 
 // MaxTasksRPC will set the maximum number of tasks that can be exchanged through RPC's stealing requests
-const MaxTasksRPC = 100
+const MaxTasksRPC = 200
 
 type (
 	// Server is the RPC server type that is able to handle steal and sync requests
@@ -73,10 +73,14 @@ func (s *Server) StealRequest(max int, reply *StealReply) error {
 }
 
 // SyncRequest is the RPC handler to a sync request
-func (s *Server) SyncRequest(useless bool, reply *nm.MonoidResults) error {
+func (s *Server) SyncRequest(_ bool, reply *nm.MonoidResults) error {
 	ch := make(chan nm.MonoidResults, 1)
 	s.Sync <- ch
 	*reply = <-ch
+
+	if debug {
+		log.Println("Syncing", *reply)
+	}
 
 	return nil
 }

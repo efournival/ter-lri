@@ -15,7 +15,7 @@ const (
 	MaxGenus = 42
 
 	// CilkBound is the inverse depth from which Cilk (through bindings) will be used
-	CilkBound = 30
+	CilkBound = 16
 
 	// MaxTasks is the size of the tasks queue, adding more tasks than that will be blocking
 	MaxTasks = 10000000
@@ -107,14 +107,6 @@ func (d *Danser) Danse() {
 		log.Println("Starting DANSE as worker")
 	}
 
-	// TODO: option (verbose)
-	/*go func() {
-		for {
-			time.Sleep(1000 * time.Millisecond)
-			log.Println(len(d.tasks), "tasks queued")
-		}
-	}()*/
-
 	// Wait indefinitely if worker, or until computation is finished if master
 	if <-d.finished {
 		log.Println("Results:", d.result)
@@ -126,8 +118,6 @@ func (d *Danser) Danse() {
 		}
 
 		log.Println("Total:", accumulator)
-
-		log.Println("DANSE finished")
 	}
 }
 
@@ -162,7 +152,7 @@ func (d *Danser) work(m nm.GoMonoid) {
 		}
 
 		var res nm.MonoidResults
-		res[m.Genus()] += nbr
+		res[m.Genus()] = nbr
 		d.results <- res
 
 		it.Free()
@@ -177,46 +167,45 @@ func (d *Danser) schedule() {
 	go func() {
 		for {
 			select {
+			case task := <-d.tasks:
+				d.work(task)
 			case sc := <-d.syncc:
-				// Asked to sync, answer if we have non-null results
-				// TODO: timeout if no result
-				sync(sc, &d.result)
+				SyncResult(sc, &d.result)
 			case result := <-d.results:
 				// Reduce
 				for k, v := range result {
 					d.result[k] += v
 				}
 			default:
-				if d.isMaster && len(d.tasks) == 0 {
-					finished := true
+				if d.isMaster {
+					allInactive := true
 
 					for _, worker := range d.workers {
 						if worker.IsActive() {
-							finished = false
+							allInactive = false
 							break
 						}
 					}
 
-					// In case there is no worker, check if d.finished has not already been set to true
-					if finished && len(d.finished) == 0 {
+					if allInactive {
 						d.finished <- true
+						return
 					}
 				}
 			}
 		}
 	}()
 
-	go func() {
-		for {
-			select {
-			case task := <-d.tasks:
-				// Explore as long as new tasks are coming into this channel
-				d.work(task)
+	if debug {
+		go func() {
+			for {
+				time.Sleep(1000 * time.Millisecond)
+				log.Println(len(d.tasks), "tasks queued,", len(d.results), "results waiting")
 			}
-		}
-	}()
+		}()
+	}
 
-	if d.isMaster {
+	if len(d.workers) > 0 && d.isMaster {
 		go func() {
 			for {
 				time.Sleep(2 * time.Second)
@@ -239,7 +228,6 @@ func (d *Danser) schedule() {
 				if d.ready && len(d.tasks) == 0 {
 					// Pick one randomly
 					w := d.workers[rand.Intn(len(d.workers))]
-					log.Println("Sending steal request to", w.Address)
 					w.Steal()
 				}
 			}
@@ -247,20 +235,7 @@ func (d *Danser) schedule() {
 	}
 }
 
-func sync(sc chan nm.MonoidResults, result *nm.MonoidResults) {
-	empty := true
-
-	for i := 0; i < len(result); i++ {
-		if result[i] != 0 {
-			empty = false
-			break
-		}
-	}
-
-	if empty {
-		return
-	}
-
+func SyncResult(sc chan nm.MonoidResults, result *nm.MonoidResults) {
 	sc <- *result
 
 	for i := 0; i < len(result); i++ {

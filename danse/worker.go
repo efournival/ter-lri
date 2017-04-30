@@ -48,10 +48,12 @@ func (w *Worker) Steal() {
 		panic(err)
 	}
 
-	log.Println("Stole", reply.Count, "tasks")
+	if reply.Count > 0 {
+		log.Println("Stole", reply.Count, "tasks")
 
-	for i := 0; i < reply.Count; i++ {
-		w.TaskStream <- nm.FromBytes(reply.Tasks[i])
+		for i := 0; i < reply.Count; i++ {
+			w.TaskStream <- nm.FromBytes(reply.Tasks[i])
+		}
 	}
 }
 
@@ -63,8 +65,24 @@ func (w *Worker) Sync() {
 		panic(err)
 	}
 
-	w.lastSync = time.Now()
-	w.Results <- result
+	empty := true
+
+	for i := 0; i < len(result); i++ {
+		if result[i] != 0 {
+			empty = false
+			break
+		}
+	}
+
+	if !empty {
+		w.lastSync = time.Now()
+
+		if debug {
+			log.Println("Got sync from", w.Address, result)
+		}
+
+		w.Results <- result
+	}
 }
 
 // IsActive returns true when the worker synced in the last 5 seconds

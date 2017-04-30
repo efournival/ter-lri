@@ -15,7 +15,7 @@ func init() {
 	// Worker danser will receive this
 	go func() {
 		for {
-			sync(<-syncc, &result)
+			SyncResult(<-syncc, &result)
 		}
 	}()
 }
