@@ -1,7 +1,7 @@
 package nm
 
 /*
-	#cgo LDFLAGS: -lcilkrts
+	#cgo LDFLAGS: -lcilkrts -Xlinker --allow-multiple-definition
 	#cgo CXXFLAGS: -std=c++11 -Wno-cpp -fPIC -g -O3 -fcilkplus -march=native -mtune=native
 	#include "ctreewalk.h"
 	#include <stdlib.h>
@@ -16,10 +16,7 @@ import (
 
 type (
 	MonoidResults [C.MAX_GENUS]uint64
-
-	// Raw array size because of:
-	// https://github.com/golang/go/issues/19816
-	MonoidStorage [160]byte
+	MonoidStorage []byte
 
 	GoMonoid struct {
 		m            C.Monoid
@@ -82,9 +79,10 @@ func (gm GoMonoid) Genus() uint64 {
 	return uint64(C.Genus(gm.m))
 }
 
-func (gm GoMonoid) GetBytes() (ms MonoidStorage) {
-	copy(ms[:], (*MonoidStorage)(unsafe.Pointer(gm.m))[0:C.SIZEOF_MONOID])
-	return
+func (gm GoMonoid) GetBytes() MonoidStorage {
+	ms := make([]byte, C.SIZEOF_MONOID)
+	copy(ms, (*[1 << 30]byte)(unsafe.Pointer(gm.m))[:C.SIZEOF_MONOID:C.SIZEOF_MONOID])
+	return ms
 }
 
 func (gm GoMonoid) Print() {

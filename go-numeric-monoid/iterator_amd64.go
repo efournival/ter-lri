@@ -1,9 +1,11 @@
 package nm
 
-// #cgo LDFLAGS: -lcilkrts
-// #cgo CXXFLAGS: -std=c++11 -Wno-cpp -fPIC -g -O3 -fcilkplus -march=native -mtune=native
-// #include "ctreewalk.h"
-// #include <stdlib.h>
+/*
+	#cgo LDFLAGS: -lcilkrts -Xlinker --allow-multiple-definition
+	#cgo CXXFLAGS: -std=c++11 -Wno-cpp -fPIC -g -O3 -fcilkplus -march=native -mtune=native
+	#include "ctreewalk.h"
+	#include <stdlib.h>
+*/
 import "C"
 import "unsafe"
 

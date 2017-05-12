@@ -1,0 +1,3 @@
+[submodule "go-numeric-monoid/NumericMonoid"]
+	path = go-numeric-monoid/NumericMonoid
+	url = https://github.com/hivert/NumericMonoid.git
