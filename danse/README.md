@@ -7,3 +7,5 @@ Go implementation of F. Hivert & J. Fromentin optimized numerical semigroups exp
 Performance-oriented and aiming to be distributed across powerful machines in order to speed-up computation.
 
 Original logo is [the Go gopher from Renee French](https://blog.golang.org/gopher).
+
+[Installation instructions](https://github.com/efournival/ter-lri/blob/master/danse/INSTALLATION.md)
